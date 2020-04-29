@@ -9,7 +9,7 @@ import json
 
 # Load KEYS.config file
 config = configparser.ConfigParser()
-config.read("keys.conf")
+config.read("keys-app.conf")
 
 # AWS Database information
 aws_username = config.get("AWSDatabaseConfig", "username")
@@ -50,7 +50,21 @@ def create_app():
         db = make_connection()
         cur = db.cursor(pymysql.cursors.DictCursor)
 
-        cur.execute("SELECT name, description, topic, jurisdiction, agency, lead_id, scrape_id, discovered_dt, query_term, link, snippet, government_level, document_ext, document_relevance FROM annotated_leads al, leads l WHERE al.lead_id = l.id AND al.is_algorithm = 1 AND l.is_duplicate = 0")
+        cur.execute("SELECT al.lead_id, al.name, al.description, al.topic, l.discovered_dt, l.query_term, l.link, l.domain, l.jurisdiction, l.source, l.people, l.organizations, l.document_ext, l.document_relevance FROM annotated_leads al, leads l WHERE al.lead_id = l.id AND al.is_published = 1;")
+        results = list(cur.fetchall())
+
+        # TODO limit the number of people and organizations returned by filtering out entites occuring less than N times.
+
+        cur.close()
+        db.close()
+        return flask.jsonify(results)
+
+    @app.route('/lead_ratings/<lead_id>')
+    def get_ratings(lead_id):
+        db = make_connection()
+        cur = db.cursor(pymysql.cursors.DictCursor)
+
+        cur.execute("SELECT * FROM crowd_ratings WHERE lead_id = %s;", (lead_id))
         results = list(cur.fetchall())
 
         cur.close()
