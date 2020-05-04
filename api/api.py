@@ -33,17 +33,6 @@ def make_connection():
 def hello_world():
     return flask.jsonify({"test": "Hello world"})
 
-@app.route('/scrapes')
-def get_scrape():
-    db = make_connection()
-    cur = db.cursor(pymysql.cursors.DictCursor)
-
-    cur.execute("SELECT * from scrapes")
-    results = list(cur.fetchall())
-
-    cur.close()
-    db.close()
-    return flask.jsonify(results)
 
 @app.route('/leads')
 def get_leads():
