@@ -8,7 +8,7 @@
         <b-nav-item to="/flags">Flags</b-nav-item>
       </b-navbar-nav>
     </b-navbar>
-    <div class="container">
+    <div id="main" class="container">
       <router-view></router-view>
     </div>
   </div>
@@ -20,4 +20,8 @@ export default {
 };
 </script>
 
-<style lang="stylus"></style>
+<style lang="stylus">
+#main {
+  margin-top: 2em;
+}
+</style>
