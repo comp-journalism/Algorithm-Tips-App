@@ -1,7 +1,16 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <router-view></router-view>
+    <b-navbar type="dark" variant="dark" sticky>
+      <b-navbar-nav>
+        <b-nav-item to="/">Home</b-nav-item>
+        <b-nav-item to="/db">Database</b-nav-item>
+        <b-nav-item to="/alerts">Alerts</b-nav-item>
+        <b-nav-item to="/flags">Flags</b-nav-item>
+      </b-navbar-nav>
+    </b-navbar>
+    <div class="container">
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
@@ -11,13 +20,4 @@ export default {
 };
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style lang="stylus"></style>
