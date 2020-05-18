@@ -61,9 +61,3 @@ def get_ratings(lead_id):
     return flask.jsonify(results)
 
 #return app
-
-if __name__=="__main__":
-    # For local development, set to True:
-    #app.run(debug=False)
-    # For public web serving:
-    app.run(debug=False, port = 8080, host='0.0.0.0')
