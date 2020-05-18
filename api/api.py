@@ -9,7 +9,7 @@ import json
 
 # Load KEYS.config file
 config = configparser.ConfigParser()
-config.read("keys-app.conf")
+config.read("keys.conf")
 
 # AWS Database information
 aws_username = config.get("AWSDatabaseConfig", "username")
