@@ -1,5 +1,3 @@
-import Vuex from 'vuex';
-
-const store = new Vuex.Store({});
+const store = {};
 
 export default store;
