@@ -1,4 +1,5 @@
 import flask
+from flask_cors import CORS
 
 import pymysql
 import pymysql.cursors
@@ -17,16 +18,19 @@ aws_password = config.get("AWSDatabaseConfig", "password")
 aws_host = config.get("AWSDatabaseConfig", "host")
 aws_database = config.get("AWSDatabaseConfig", "database")
 
-#def create_app():
+# def create_app():
 app = flask.Flask(__name__)
+CORS(app)
+
 
 def make_connection():
-    return pymysql.connect(user= aws_username,  # Username of AWS database
-                    passwd= aws_password,  # AWS Database password
-                    host= aws_host,  # AWS Instance
-                    port=3306,
-                    database= aws_database,
-                    charset='utf8mb4')
+    # TODO: the app should instead instantiate a connection pool on start
+    return pymysql.connect(user=aws_username,  # Username of AWS database
+                           passwd=aws_password,  # AWS Database password
+                           host=aws_host,  # AWS Instance
+                           port=3306,
+                           database=aws_database,
+                           charset='utf8mb4')
 
 
 @app.route('/')
@@ -48,6 +52,31 @@ def get_leads():
     db.close()
     return flask.jsonify(results)
 
+
+@app.route('/api/lead/<lead_id>')
+def get_lead(lead_id):
+    db = make_connection()
+    cur = db.cursor(pymysql.cursors.DictCursor)
+
+    count = cur.execute("""
+        select
+            al.lead_id as id, al.name, al.description, al.topic, 
+            l.discovered_dt, l.query_term, l.link, l.domain, l.jurisdiction,
+            l.source, l.people, l.organizations, l.document_ext, l.document_relevance
+        from annotated_leads al
+        join leads l on al.lead_id = l.id
+        where l.id = %s and al.is_published = 1;
+    """, lead_id)
+
+    if count >= 1:
+        result = cur.fetchone()
+        cur.close()
+        db.close()
+        return flask.jsonify(result)
+    else:
+        return flask.abort(404)
+
+
 @app.route('/lead_ratings/<lead_id>')
 def get_ratings(lead_id):
     db = make_connection()
@@ -60,4 +89,4 @@ def get_ratings(lead_id):
     db.close()
     return flask.jsonify(results)
 
-#return app
+# return app
