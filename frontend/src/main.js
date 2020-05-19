@@ -25,7 +25,7 @@ const router = new VueRouter({
       path: '/lead/:id', component: SingleLead, props: true,
     },
     {
-      path: '/db', component: FilterLeads, props: true
+      path: '/db', component: FilterLeads, props: (route) => { return { query: route.query }; },
     }
   ]
 });

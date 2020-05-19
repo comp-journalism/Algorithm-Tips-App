@@ -133,7 +133,6 @@ export default {
     },
     discovered() {
       const dt = moment(this.discovered_dt);
-      console.log(dt);
 
       return dt.format("MMMM Do, YYYY");
     },

@@ -24,8 +24,16 @@ export default {
         [STORE_LEAD](state, lead) {
             state.leads[lead.id] = lead;
         },
-        [STORE_FILTER](state, { ids, filter }) {
-            state.filters[filterKey(filter)] = ids;
+        [STORE_FILTER](state, { num_pages, page, ids, filter }) {
+            const key = filterKey(filter);
+            if (!state.filters[key]) {
+                state.filters[key] = {
+                    num_pages,
+                    page_contents: {}
+                };
+            }
+
+            state.filters[key].page_contents[page] = ids;
         }
     },
     actions: {
@@ -44,19 +52,26 @@ export default {
                 throw error;
             }
         },
-        async filter({ commit, state }, params) {
-            console.log(params);
-            if (state.filters[filterKey(params)]) {
+        async filter({ commit, state }, { params, page }) {
+            console.log(params, page);
+            const key = filterKey(params);
+            if (state.filters[key] && state.filters[key].page_contents[page]) {
                 return;
             }
 
             try {
                 const res = await axios.get(api_url('leads'), {
-                    params,
+                    params: { ...params, page: page },
                 });
 
-                res.data.forEach(lead => commit(STORE_LEAD, lead));
-                commit(STORE_FILTER, { filter: params, ids: res.data.map(({ id }) => id) });
+                res.data.leads.forEach(lead => commit(STORE_LEAD, lead));
+
+                const ids = res.data.leads.map(({ id }) => id);
+                commit(STORE_FILTER, {
+                    filter: params,
+                    num_pages: res.data.num_pages,
+                    ids, page
+                });
             } catch (error) {
                 console.error(error);
                 throw error;
@@ -65,6 +80,21 @@ export default {
     },
     getters: {
         find: (state) => (id) => state.leads[Number(id)] || null,
-        'filter-get': (state) => (filter) => (state.filters[filterKey(filter)] || []).map(id => state.leads[id]),
+        'filter-get': (state) => (filter, page) => {
+            const meta = state.filters[filterKey(filter)];
+            if (!meta) {
+                return [];
+            }
+
+            return meta.page_contents[page].map(id => state.leads[id]);
+        },
+        'filter-pages': (state) => (filter) => {
+            const meta = state.filters[filterKey(filter)];
+            if (!meta) {
+                return null;
+            }
+
+            return meta.num_pages;
+        }
     }
 };

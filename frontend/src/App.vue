@@ -9,7 +9,7 @@
       </b-navbar-nav>
     </b-navbar>
     <div id="main" class="container">
-      <router-view></router-view>
+      <router-view :key="$route.fullPath"></router-view>
     </div>
   </div>
 </template>

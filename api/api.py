@@ -1,3 +1,4 @@
+from math import ceil
 import flask
 from flask import request
 from flask_cors import CORS
@@ -101,6 +102,9 @@ def get_lead(lead_id):
         return flask.abort(404)
 
 
+PAGE_SIZE = 5
+
+
 @app.route('/api/leads')
 def filter_leads():
     """Queries should have the form /api/leads?filter=...&from=...&to=...&source=...&page=n where:
@@ -133,18 +137,20 @@ def filter_leads():
     db = make_connection()
     cur = db.cursor(pymysql.cursors.DictCursor)
 
-    query = build_leads_query(' and '.join(where), limit)
+    qstring = ' and '.join(where)
 
-    print(query)
+    query = build_leads_query(qstring, limit)
 
-    cur.execute(query, {
+    qparams = {
         'filter': filter_,
         'from': from_,
         'to': to,
         'source': source,
-        'page_start': (page - 1) * 10,
-        'page_size': 10
-    })
+        'page_start': (page - 1) * PAGE_SIZE,
+        'page_size': PAGE_SIZE
+    }
+
+    cur.execute(query, qparams)
 
     results = list(cur.fetchall())
 
@@ -152,7 +158,22 @@ def filter_leads():
         # no need to do more queries. return empty result
         cur.close()
         db.close()
-        return flask.jsonify(results)
+        return flask.jsonify({
+            'num_pages': 0,
+            'num_results': 0,
+            'page': 1,
+            'leads': []
+        })
+
+    # count total results so we know the page count
+    cur.execute(
+        f"select count(*) as num_results from annotated_leads as al join leads as l on l.id = al.lead_id where {qstring or '1 = 1'} and al.is_published = 1;", qparams)
+
+    meta = cur.fetchone()
+    print(meta)
+
+    meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
+    meta['page'] = page
 
     cur.execute('select * from crowd_ratings where lead_id in %s',
                 (tuple(res['id'] for res in results),))
@@ -166,7 +187,12 @@ def filter_leads():
 
     cur.close()
     db.close()
-    return flask.jsonify(list(res_map.values()))
+
+    result = {
+        'leads': list(res_map.values()),
+        **meta
+    }
+    return flask.jsonify(result)
 
 
 # return app
