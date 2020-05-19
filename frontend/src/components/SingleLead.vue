@@ -27,7 +27,6 @@ export default {
   },
   mounted() {
     this.loadLead(this.id).then(() => {
-      console.log(this.getLead);
       this.lead = this.getLead(this.id);
     });
   },

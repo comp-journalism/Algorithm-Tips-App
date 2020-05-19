@@ -2,7 +2,10 @@
   <div class="lead-box">
     <b-card no-body>
       <template v-slot:header>
-        <h5>{{ name }}</h5>
+        <router-link :to="page_url" v-if="headerLink" class="header-link">
+          <h5>{{ name }}</h5>
+        </router-link>
+        <h5 v-else>{{ name }}</h5>
         <a class="float-right" href="#">Add Flag</a>
       </template>
       <b-card-body>
@@ -27,7 +30,7 @@
           <dd class="col-sm-8">{{ people_orgs.join(", ") }}</dd>
         </dl>
 
-        <h5>Crowd Ratings</h5>
+        <h5 v-if="ratings_split.length">Crowd Ratings</h5>
       </b-card-body>
       <b-list-group flush>
         <b-list-group-item v-for="rating in ratings_split" :key="rating.title">
@@ -41,6 +44,7 @@
             <span class="score-display float-right">{{ rating.score.toFixed(1) }} / 5</span>
           </div>
 
+          <!-- TODO: the complex tables are slowing down renders because they always render, even if collapsed -->
           <b-collapse :id="rating.title">
             <b-table
               v-if="rating.comments.length"
@@ -94,6 +98,7 @@ import moment from "moment";
 export default {
   name: "Lead",
   props: {
+    id: Number,
     name: String,
     description: String,
     link: String,
@@ -105,9 +110,13 @@ export default {
     people: String,
     organizations: String,
     query_term: String,
-    discovered_dt: String
+    discovered_dt: String,
+    "header-link": Boolean
   },
   computed: {
+    page_url() {
+      return `/lead/${this.id}`;
+    },
     people_orgs() {
       const people = JSON.parse(this.people);
       const orgs = JSON.parse(this.organizations);
@@ -179,6 +188,7 @@ export default {
 <style lang="stylus">
 .lead-box {
   max-width: 45em;
+  margin-bottom: 2em;
 
   p.quote {
     margin-bottom: 0;
@@ -224,6 +234,10 @@ export default {
 
   .rating-title {
     padding-left: 1em;
+  }
+
+  a.header-link {
+    color: initial;
   }
 }
 </style>

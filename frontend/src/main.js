@@ -6,6 +6,7 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 
 import App from './App.vue';
 import SingleLead from './components/SingleLead.vue';
+import FilterLeads from './components/FilterLeads.vue';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -21,7 +22,10 @@ const router = new VueRouter({
   mode: 'history',
   routes: [
     {
-      path: '/lead/:id', component: SingleLead, props: true
+      path: '/lead/:id', component: SingleLead, props: true,
+    },
+    {
+      path: '/db', component: FilterLeads, props: true
     }
   ]
 });
