@@ -1,4 +1,5 @@
 import flask
+from flask import request
 from flask_cors import CORS
 
 import pymysql
@@ -53,20 +54,38 @@ def get_leads():
     return flask.jsonify(results)
 
 
-@app.route('/api/lead/<lead_id>')
-def get_lead(lead_id):
+@app.route('/lead_ratings/<lead_id>')
+def get_ratings(lead_id):
     db = make_connection()
     cur = db.cursor(pymysql.cursors.DictCursor)
 
-    count = cur.execute("""
+    cur.execute("SELECT * FROM crowd_ratings WHERE lead_id = %s;", (lead_id))
+    results = list(cur.fetchall())
+
+    cur.close()
+    db.close()
+    return flask.jsonify(results)
+
+
+def build_leads_query(where, extra=''):
+    return f"""
         select
             al.lead_id as id, al.name, al.description, al.topic, 
             l.discovered_dt, l.query_term, l.link, l.domain, l.jurisdiction,
             l.source, l.people, l.organizations, l.document_ext, l.document_relevance
         from annotated_leads al
         join leads l on al.lead_id = l.id
-        where l.id = %s and al.is_published = 1;
-    """, lead_id)
+        where {where or '1 = 1'} and al.is_published = 1
+        {extra};
+    """
+
+
+@app.route('/api/lead/<lead_id>')
+def get_lead(lead_id):
+    db = make_connection()
+    cur = db.cursor(pymysql.cursors.DictCursor)
+
+    count = cur.execute(build_leads_query("l.id = %s"), lead_id)
 
     if count >= 1:
         result = cur.fetchone()
@@ -82,16 +101,72 @@ def get_lead(lead_id):
         return flask.abort(404)
 
 
-@app.route('/lead_ratings/<lead_id>')
-def get_ratings(lead_id):
+@app.route('/api/leads')
+def filter_leads():
+    """Queries should have the form /api/leads?filter=...&from=...&to=...&source=...&page=n where:
+
+    - filter defines the keyword(s) to use to search
+    - from / to are start / end dates to search within
+    - source is a source filter (matched on equality)
+    - page is a number from 1 to ...
+    """
+    filter_ = request.args.get('filter', None)
+    from_ = request.args.get('from', None)
+    to = request.args.get('to', None)
+    source = request.args.get('source', None)
+    page = request.args.get('page', 1, int)
+
+    where = []
+
+    if filter_ is not None:
+        where.append(
+            "match(al.name, al.description, al.topic) against (%(filter)s in natural language mode)")
+    if from_ is not None:
+        where.append("discovered_dt >= %(from)s")
+    if to is not None:
+        where.append("discovered_dt <= %(to)s")
+    if source is not None:
+        where.append("source = %(source)s")
+
+    limit = f'order by l.id limit %(page_start)s,%(page_size)s'
+
     db = make_connection()
     cur = db.cursor(pymysql.cursors.DictCursor)
 
-    cur.execute("SELECT * FROM crowd_ratings WHERE lead_id = %s;", (lead_id))
+    query = build_leads_query(' and '.join(where), limit)
+
+    print(query)
+
+    cur.execute(query, {
+        'filter': filter_,
+        'from': from_,
+        'to': to,
+        'source': source,
+        'page_start': (page - 1) * 10,
+        'page_size': 10
+    })
+
     results = list(cur.fetchall())
+
+    if len(results) == 0:
+        # no need to do more queries. return empty result
+        cur.close()
+        db.close()
+        return flask.jsonify(results)
+
+    cur.execute('select * from crowd_ratings where lead_id in %s',
+                (tuple(res['id'] for res in results),))
+    ratings = list(cur.fetchall())
+
+    res_map = {res['id']: {'ratings': [], **res} for res in results}
+
+    for rating in ratings:
+        lead = res_map[rating['lead_id']]
+        lead['ratings'].append(rating)
 
     cur.close()
     db.close()
-    return flask.jsonify(results)
+    return flask.jsonify(list(res_map.values()))
+
 
 # return app

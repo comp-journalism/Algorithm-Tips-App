@@ -1,0 +1,1 @@
+drop index annotated_leads_filter on annotated_leads;
