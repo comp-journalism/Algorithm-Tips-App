@@ -2,34 +2,43 @@
   <div class="lead-box">
     <b-card no-body>
       <template v-slot:header>
-        <h5>{{ title }}</h5>
+        <h5>{{ name }}</h5>
         <a class="float-right" href="#">Add Flag</a>
       </template>
       <b-card-body>
-        <p class="quote">&ldquo;&hellip; {{ quote }} &hellip;&rdquo;</p>
+        <p class="quote">&ldquo;&hellip; {{ description }} &hellip;&rdquo;</p>
         <div class="source">
-          <a :href="source">Source</a>&nbsp;
-          <a class="cache-link" :href="cache">(Cache)</a>
+          <a :href="link">Source</a>&nbsp;
+          <a class="cache-link" v-if="cache" :href="cache">(Cache)</a>
         </div>
+        <div
+          class="found-by"
+        >Found via a search for &ldquo;{{ query_term }}&rdquo; on {{ discovered }}</div>
 
-        <h6>Additional Info</h6>
+        <h5>Additional Info</h5>
         <dl class="row">
-          <template v-for="entry in info">
-            <dt :key="entry.title" class="col-sm-4">{{ entry.title }}</dt>
-            <dd :key="entry.title" class="col-sm-8">{{ entry.body }}</dd>
-          </template>
+          <dt class="col-sm-4">Jurisdiction</dt>
+          <dd class="col-sm-8">{{ jurisdiction }}</dd>
+          <dt class="col-sm-4">Agency</dt>
+          <dd class="col-sm-8">{{ source }}</dd>
+          <dt class="col-sm-4">Main Topics</dt>
+          <dd class="col-sm-8">{{ topic }}</dd>
+          <dt class="col-sm-4">People &amp; Organizations</dt>
+          <dd class="col-sm-8">{{ people_orgs.join(", ") }}</dd>
         </dl>
 
-        <h6>Crowd Ratings</h6>
+        <h5>Crowd Ratings</h5>
       </b-card-body>
       <b-list-group flush>
-        <b-list-group-item v-for="rating in ratings" :key="rating.title">
+        <b-list-group-item v-for="rating in ratings_split" :key="rating.title">
           <div v-b-toggle:[rating.title]>
-            <span>{{ rating.title }}</span>
-            <b-progress :max="10" class="w-25 float-right inline-bar" variant="info">
+            <b-icon-chevron-right class="when-closed" />
+            <b-icon-chevron-down class="when-open" />
+            <span class="rating-title">{{ rating.title }}</span>
+            <b-progress :max="5" class="w-25 float-right inline-bar" variant="info">
               <b-progress-bar :value="rating.score"></b-progress-bar>
             </b-progress>
-            <span class="score-display float-right">{{ rating.score.toFixed(1) }} / 10</span>
+            <span class="score-display float-right">{{ rating.score.toFixed(1) }} / 5</span>
           </div>
 
           <b-collapse :id="rating.title">
@@ -50,6 +59,7 @@
 </template>
 
 <script>
+import moment from "moment";
 // example props structure
 //
 // {
@@ -84,12 +94,84 @@
 export default {
   name: "Lead",
   props: {
-    title: String,
-    quote: String,
-    source: String,
+    name: String,
+    description: String,
+    link: String,
     cache: String,
-    info: Array,
-    ratings: Array
+    ratings: Array,
+    jurisdiction: String,
+    source: String,
+    topic: String,
+    people: String,
+    organizations: String,
+    query_term: String,
+    discovered_dt: String
+  },
+  computed: {
+    people_orgs() {
+      const people = JSON.parse(this.people);
+      const orgs = JSON.parse(this.organizations);
+
+      const filtration = ([, count]) => count >= 10;
+      const merged = Object.entries(people)
+        .concat(Object.entries(orgs))
+        .filter(filtration);
+      merged.sort(([, a], [, b]) => b - a);
+
+      // const merged = people_fil.concat(orgs_fil);
+      // merged.sort(([, a], [, b]) => a - b);
+      return merged.map(([name]) => name);
+    },
+    discovered() {
+      const dt = moment(this.discovered_dt);
+      console.log(dt);
+
+      return dt.format("MMMM Do, YYYY");
+    },
+    ratings_split() {
+      const KEYS = ["controversy", "magnitude", "societal_impact", "surprise"];
+      const LABELS = [
+        "Potential for Controversy",
+        "Size of Impact",
+        "Negative Societal Impact",
+        "Surprising"
+      ];
+      const mapper = obj =>
+        KEYS.map((key, ix) => {
+          return {
+            category: key,
+            label: LABELS[ix],
+            score: 5 - obj[key] + 1,
+            comment: obj[`${key}_explanation`]
+          };
+        });
+
+      const init = obj => {
+        return {
+          title: obj.label,
+          total_score: 0,
+          get score() {
+            return this.total_score / this.comments.length;
+          },
+          comments: []
+        };
+      };
+
+      return Object.values(
+        this.ratings.flatMap(mapper).reduce((result, obj) => {
+          if (!result[obj.category]) {
+            result[obj.category] = init(obj);
+          }
+
+          result[obj.category].total_score += obj.score;
+          result[obj.category].comments.push({
+            score: obj.score,
+            comment: obj.comment
+          });
+          return result;
+        }, {})
+      );
+    }
   }
 };
 </script>
@@ -107,8 +189,12 @@ export default {
     display: inline;
   }
 
-  h6 {
+  .card-body h5 {
     margin-top: 1rem;
+  }
+
+  .card-body {
+    padding-bottom: 0;
   }
 
   dd {
@@ -126,6 +212,18 @@ export default {
 
   .comment-table {
     margin-top: 1em;
+  }
+
+  .found-by {
+    font-style: italic;
+  }
+
+  .collapsed > .when-open, .not-collapsed > .when-closed {
+    display: none;
+  }
+
+  .rating-title {
+    padding-left: 1em;
   }
 }
 </style>

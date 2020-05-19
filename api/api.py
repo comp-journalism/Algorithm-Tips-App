@@ -70,8 +70,13 @@ def get_lead(lead_id):
 
     if count >= 1:
         result = cur.fetchone()
+
+        # now we load comments for it
+        cur.execute("select * from crowd_ratings where lead_id = %s;", lead_id)
+        ratings = list(cur.fetchall())
         cur.close()
         db.close()
+        result['ratings'] = ratings
         return flask.jsonify(result)
     else:
         return flask.abort(404)
