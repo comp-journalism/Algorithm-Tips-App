@@ -1,15 +1,33 @@
 <template>
   <div>
     <div class="row">
-      <b-form class="col-sm-12" id="#lead-filter">
+      <b-form class="col-sm-12" id="lead-filter">
         <b-form-input v-model="filter.filter" placeholder="Search..." />
-        <b-form-group label="Discovered From" label-for="from-date">
-          <b-form-datepicker id="from-date" v-model="filter.from" />
-        </b-form-group>
-        <b-form-group label="to" label-for="to-date">
-          <b-form-datepicker id="to-date" v-model="filter.to" />
-        </b-form-group>
-        <b-button-group class="float-right">
+        <div id="advanced-toggle" v-b-toggle:advanced-filters>
+          <b-icon-chevron-right class="when-closed" />
+          <b-icon-chevron-down class="when-open" />
+          <span>Advanced Filters</span>
+        </div>
+        <b-collapse id="advanced-filters">
+          <b-form-group
+            label="Discovered Before:"
+            label-for="to-date"
+            label-cols-sm="3"
+            label-align="right"
+          >
+            <b-form-datepicker id="to-date" v-model="filter.to" />
+          </b-form-group>
+          <b-form-group
+            label="Discovered After:"
+            label-for="from-date"
+            label-cols-sm="3"
+            label-align="right"
+          >
+            <b-form-datepicker id="from-date" v-model="filter.from" />
+          </b-form-group>
+        </b-collapse>
+
+        <b-button-group id="submit-group" class="float-right">
           <b-button @click="clearForm">Reset</b-button>
           <b-button @click="updateData" variant="primary">Search</b-button>
         </b-button-group>
@@ -90,3 +108,25 @@ export default {
   }
 };
 </script>
+
+<style lang="stylus" scoped>
+#lead-filter {
+  margin-bottom: 2em;
+}
+
+#submit-group {
+  margin-top: 1em;
+}
+
+.collapsed > .when-open, .not-collapsed > .when-closed {
+  display: none;
+}
+
+#advanced-toggle {
+  margin-top: 0.5em;
+}
+
+#advanced-toggle > span {
+  margin-left: 0.5em;
+}
+</style>

@@ -187,7 +187,6 @@ export default {
 
 <style lang="stylus">
 .lead-box {
-  max-width: 45em;
   margin-bottom: 2em;
 
   p.quote {

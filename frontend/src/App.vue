@@ -23,5 +23,6 @@ export default {
 <style lang="stylus">
 #main {
   margin-top: 2em;
+  max-width: 47em;
 }
 </style>
