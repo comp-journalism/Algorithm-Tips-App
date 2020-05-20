@@ -12,11 +12,11 @@
         <p class="quote">{{ description }}</p>
         <!-- prettyhtml-preserve-whitespace -->
         <div class="source">
-          <a :href="link">{{ link }}</a>&nbsp;
-          (<a class="cache-link" v-if="cache" :href="cache">Cache</a>)
+          <external-link :href="link">{{ link }}</external-link>&nbsp;
+          (<external-link class="cache-link" v-if="cache" :href="cache">Cache</external-link>)
         </div>
         <!-- prettyhtml-preserve-whitespace -->
-        <div class="found-by">Found via a search for &ldquo;<a :href="query_url">{{ query_term }}</a>&rdquo; on {{ discovered }}</div>
+        <div class="found-by">Found via a search for &ldquo;<external-link :href="query_url">{{ query_term }}</external-link>&rdquo; on {{ discovered }}</div>
 
         <h5>Additional Info</h5>
         <dl class="row">
@@ -64,8 +64,13 @@
 
 <script>
 import moment from "moment";
+import externalLink from "./external-link.vue";
+
 export default {
   name: "Lead",
+  components: {
+    "external-link": externalLink
+  },
   props: {
     id: Number,
     name: String,
