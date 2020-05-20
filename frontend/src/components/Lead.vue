@@ -9,7 +9,7 @@
         <a class="float-right" href="#">Add Flag</a>
       </template>
       <b-card-body>
-        <p class="quote">&ldquo;&hellip; {{ description }} &hellip;&rdquo;</p>
+        <p class="quote">{{ description }}</p>
         <div class="source">
           <a :href="link">Source</a>&nbsp;
           <a class="cache-link" v-if="cache" :href="cache">(Cache)</a>
