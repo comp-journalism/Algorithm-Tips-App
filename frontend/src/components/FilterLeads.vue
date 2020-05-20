@@ -33,25 +33,24 @@
         </b-button-group>
       </b-form>
     </div>
-    <div class="row justify-content-center" v-if="loading">
-      <b-spinner />
-    </div>
-    <div class="row justify-content-center" v-else-if="no_results">
+    <div class="row justify-content-center" v-if="no_results">
       <p>
         <em>No results found</em>
       </p>
     </div>
-    <div id="#leads" v-else>
+    <div
+      id="leads"
+      v-else
+      v-infinite-scroll="loadMore"
+      infinite-scroll-disabled="disable_loading"
+      infinite-scroll-distance="10"
+    >
       <div v-bind:key="lead.id" v-for="lead in leads" class="row justify-content-center">
         <Lead v-bind="lead" header-link />
       </div>
-      <b-pagination-nav
-        :number-of-pages="page_count"
-        v-model="page"
-        no-page-detect
-        use-router
-        :link-gen="linkGen"
-      />
+    </div>
+    <div id="spinner-container" class="row justify-content-center" v-if="loading">
+      <b-spinner />
     </div>
   </div>
 </template>
@@ -59,9 +58,13 @@
 <script>
 import Lead from "./Lead.vue";
 import { mapActions, mapGetters } from "vuex";
+import infiniteScroll from "vue-infinite-scroll";
 
 export default {
   name: "FilterLeads",
+  directives: {
+    infiniteScroll
+  },
   props: {
     query: Object
   },
@@ -70,13 +73,15 @@ export default {
   },
   data() {
     return {
-      leads: null,
+      loading: true,
+      leads: [],
       form: {
         filter: this.query.filter,
         from: this.query.from,
         to: this.query.to,
         source: this.query.source
       },
+      page: 0,
       page_count: 1
     };
   },
@@ -84,18 +89,16 @@ export default {
     ...mapActions({
       filterLeads: "leads/filter"
     }),
-    linkGen(pagenum) {
-      return {
-        path: "/db",
-        query: { ...this.clean_filter(), page: pagenum }
-      };
-    },
-    updateData() {
-      this.leads = null;
+    loadMore() {
       const filter = this.query;
+
+      this.page += 1;
+      this.loading = true;
+
       this.filterLeads({ params: filter, page: this.page }).then(() => {
-        this.leads = this.getFilter(filter, this.page);
+        this.leads = this.leads.concat(this.getFilter(filter, this.page));
         this.page_count = this.getFilterPages(filter);
+        this.loading = false;
       });
     },
     clearForm() {
@@ -120,27 +123,24 @@ export default {
       getFilter: "leads/filter-get",
       getFilterPages: "leads/filter-pages"
     }),
-    page() {
-      return this.query.page || 1;
-    },
-    loading() {
-      return this.leads === null;
-    },
     no_results() {
-      return this.leads !== null && this.leads.length === 0;
+      return !this.loading && this.leads.length === 0;
     },
     search_path() {
       return {
         path: "/db",
-        query: {
-          ...this.clean_filter(),
-          page: 1
-        }
+        query: this.clean_filter()
       };
+    },
+    reached_end() {
+      return this.page >= this.page_count;
+    },
+    disable_loading() {
+      return this.loading || this.no_results || this.reached_end;
     }
   },
   mounted() {
-    this.updateData();
+    this.loadMore();
   }
 };
 </script>
@@ -164,5 +164,9 @@ export default {
 
 #advanced-toggle > span {
   margin-left: 0.5em;
+}
+
+#spinner-container {
+  margin-bottom: 2em;
 }
 </style>
