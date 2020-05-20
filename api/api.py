@@ -1,6 +1,6 @@
 from math import ceil
 import flask
-from flask import request
+from flask import request, send_from_directory, send_file
 from flask_cors import CORS
 
 import pymysql
@@ -33,39 +33,6 @@ def make_connection():
                            port=3306,
                            database=aws_database,
                            charset='utf8mb4')
-
-
-@app.route('/')
-def hello_world():
-    return flask.jsonify({"test": "Hello world"})
-
-
-@app.route('/leads')
-def get_leads():
-    db = make_connection()
-    cur = db.cursor(pymysql.cursors.DictCursor)
-
-    cur.execute("SELECT al.lead_id, al.name, al.description, al.topic, l.discovered_dt, l.query_term, l.link, l.domain, l.jurisdiction, l.source, l.people, l.organizations, l.document_ext, l.document_relevance FROM annotated_leads al, leads l WHERE al.lead_id = l.id AND al.is_published = 1;")
-    results = list(cur.fetchall())
-
-    # TODO limit the number of people and organizations returned by filtering out entites occuring less than N times.
-
-    cur.close()
-    db.close()
-    return flask.jsonify(results)
-
-
-@app.route('/lead_ratings/<lead_id>')
-def get_ratings(lead_id):
-    db = make_connection()
-    cur = db.cursor(pymysql.cursors.DictCursor)
-
-    cur.execute("SELECT * FROM crowd_ratings WHERE lead_id = %s;", (lead_id))
-    results = list(cur.fetchall())
-
-    cur.close()
-    db.close()
-    return flask.jsonify(results)
 
 
 def build_leads_query(where, extra=''):
@@ -194,5 +161,20 @@ def filter_leads():
     }
     return flask.jsonify(result)
 
+
+@app.route('/css/<path:path>')
+def host_css(path):
+    return send_from_directory('../frontend/dist/css', path)
+
+
+@app.route('/js/<path:path>')
+def host_js(path):
+    return send_from_directory('../frontend/dist/js', path)
+
+
+@app.route('/')
+@app.route('/<path:path>')
+def test_host(path):
+    return send_file('../frontend/dist/index.html')
 
 # return app
