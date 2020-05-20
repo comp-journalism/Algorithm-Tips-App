@@ -37,7 +37,7 @@ def init_pool():
     aws_database = config.get("AWSDatabaseConfig", "database")
 
     global_pool = Pool(user=aws_username, password=aws_password,
-                       host=aws_host, port=3306, db=aws_database, charset='utf8mb4')
+                       host=aws_host, port=3306, db=aws_database, charset='utf8mb4', autocommit=True)
 
 
 def make_connection():
