@@ -20,7 +20,12 @@ CORS(app)
 global_pool = None
 
 
+@app.before_first_request
 def init_pool():
+    global global_pool
+    if global_pool is not None:
+        return
+
     # Load KEYS.config file
     config = configparser.ConfigParser()
     config.read("keys.conf")
@@ -30,8 +35,6 @@ def init_pool():
     aws_password = config.get("AWSDatabaseConfig", "password")
     aws_host = config.get("AWSDatabaseConfig", "host")
     aws_database = config.get("AWSDatabaseConfig", "database")
-
-    global global_pool
 
     global_pool = Pool(user=aws_username, password=aws_password,
                        host=aws_host, port=3306, db=aws_database, charset='utf8mb4')
@@ -58,7 +61,7 @@ def build_leads_query(where, extra=''):
     """
 
 
-@app.route('/api/lead/<lead_id>')
+@app.route('/lead/<lead_id>')
 def get_lead(lead_id):
     db = make_connection()
     cur = db.cursor(pymysql.cursors.DictCursor)
@@ -82,7 +85,7 @@ def get_lead(lead_id):
 PAGE_SIZE = 5
 
 
-@app.route('/api/leads')
+@app.route('/leads')
 def filter_leads():
     """Queries should have the form /api/leads?filter=...&from=...&to=...&source=...&page=n where:
 
@@ -170,21 +173,4 @@ def filter_leads():
         **meta
     }
     return flask.jsonify(result)
-
-
-@app.route('/css/<path:path>')
-def host_css(path):
-    return send_from_directory('../frontend/dist/css', path)
-
-
-@app.route('/js/<path:path>')
-def host_js(path):
-    return send_from_directory('../frontend/dist/js', path)
-
-
-@app.route('/')
-@app.route('/<path:path>')
-def test_host(path):
-    return send_file('../frontend/dist/index.html')
-
 # return app
