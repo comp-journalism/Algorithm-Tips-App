@@ -25,6 +25,14 @@
           >
             <b-form-datepicker id="from-date" v-model="form.from" />
           </b-form-group>
+          <b-form-group
+            label="Source:"
+            label-for="source-select"
+            label-cols-sm="3"
+            label-align="right"
+          >
+            <b-form-select id="source-select" v-model="form.source" :options="source_options"></b-form-select>
+          </b-form-group>
         </b-collapse>
 
         <b-button-group id="submit-group" class="float-right">
@@ -79,7 +87,7 @@ export default {
         filter: this.query.filter,
         from: this.query.from,
         to: this.query.to,
-        source: this.query.source
+        source: this.query.source || null
       },
       page: 0,
       page_count: 1
@@ -102,11 +110,11 @@ export default {
       });
     },
     clearForm() {
-      this.filter = {
+      this.form = {
         filter: undefined,
         from: undefined,
         to: undefined,
-        source: undefined
+        source: null
       };
     },
     submitSearch() {
@@ -114,7 +122,9 @@ export default {
     },
     clean_filter() {
       return Object.fromEntries(
-        Object.entries(this.form).filter(([, value]) => value !== undefined)
+        Object.entries(this.form).filter(
+          ([, value]) => value !== undefined && value !== null
+        )
       );
     }
   },
@@ -137,6 +147,31 @@ export default {
     },
     disable_loading() {
       return this.loading || this.no_results || this.reached_end;
+    },
+    source_options() {
+      return [
+        { value: null, text: "Any Source" },
+        {
+          label: "Federal",
+          options: [
+            "Federal Agency - Executive",
+            "Federal Agency - Judicial",
+            "Federal Agency - Legislative"
+          ]
+        },
+        {
+          label: "State / Regional",
+          options: [
+            "State/Local Govt",
+            "Interstate Agency",
+            "Native Sovereign Nation"
+          ]
+        },
+        {
+          label: "Local",
+          options: ["City", "County"]
+        }
+      ];
     }
   },
   mounted() {

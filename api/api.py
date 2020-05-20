@@ -130,7 +130,7 @@ def filter_leads():
     if to is not None:
         where.append("discovered_dt <= %(to)s")
     if source is not None:
-        where.append("source = %(source)s")
+        where.append("jurisdiction = %(source)s")
 
     limit = f'order by l.id limit %(page_start)s,%(page_size)s'
 

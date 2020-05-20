@@ -10,13 +10,13 @@
       </template>
       <b-card-body>
         <p class="quote">{{ description }}</p>
+        <!-- prettyhtml-preserve-whitespace -->
         <div class="source">
-          <a :href="link">Source</a>&nbsp;
-          <a class="cache-link" v-if="cache" :href="cache">(Cache)</a>
+          <a :href="link">{{ link }}</a>&nbsp;
+          (<a class="cache-link" v-if="cache" :href="cache">Cache</a>)
         </div>
-        <div
-          class="found-by"
-        >Found via a search for &ldquo;{{ query_term }}&rdquo; on {{ discovered }}</div>
+        <!-- prettyhtml-preserve-whitespace -->
+        <div class="found-by">Found via a search for &ldquo;<a :href="query_url">{{ query_term }}</a>&rdquo; on {{ discovered }}</div>
 
         <h5>Additional Info</h5>
         <dl class="row">
@@ -71,7 +71,6 @@ export default {
     name: String,
     description: String,
     link: String,
-    cache: String,
     ratings: Array,
     jurisdiction: String,
     source: String,
@@ -80,11 +79,20 @@ export default {
     organizations: String,
     query_term: String,
     discovered_dt: String,
+    document_ext: String,
     "header-link": Boolean
   },
   computed: {
     page_url() {
       return `/lead/${this.id}`;
+    },
+    cache() {
+      return `https://algorithm-tips.s3.us-east-2.amazonaws.com/documents/${this.id}.${this.document_ext}`;
+    },
+    query_url() {
+      return `https://www.google.com/search?hl=en&q=%22${encodeURIComponent(
+        this.query_term
+      )}%22+site%3A.gov+-site%3A.nih.gov&as_qdr=w1&lr=en&num=100`;
     },
     people_orgs() {
       const people = JSON.parse(this.people);
