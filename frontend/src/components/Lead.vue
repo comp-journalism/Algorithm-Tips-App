@@ -33,8 +33,9 @@
         <h5 v-if="ratings_split.length">Crowd Ratings</h5>
       </b-card-body>
       <b-list-group flush>
+        <!-- TODO: these bits are slowing down renders. not sure how much effort is worth spending on the perf here -->
         <b-list-group-item v-for="rating in ratings_split" :key="rating.title">
-          <div v-b-toggle:[rating.title]>
+          <div v-b-toggle:[id+rating.title]>
             <b-icon-chevron-right class="when-closed" />
             <b-icon-chevron-down class="when-open" />
             <span class="rating-title">{{ rating.title }}</span>
@@ -44,14 +45,13 @@
             <span class="score-display float-right">{{ rating.score.toFixed(1) }} / 5</span>
           </div>
 
-          <!-- TODO: the complex tables are slowing down renders because they always render, even if collapsed -->
-          <b-collapse :id="rating.title">
-            <b-table
+          <b-collapse :id="id+rating.title">
+            <b-table-lite
               v-if="rating.comments.length"
               class="comment-table"
               striped
               :items="rating.comments"
-            ></b-table>
+            ></b-table-lite>
             <span v-else>
               <em>No rating information available.</em>
             </span>
@@ -64,37 +64,6 @@
 
 <script>
 import moment from "moment";
-// example props structure
-//
-// {
-//   title: "Algorithm for Fall Risk Assessment & Interventions",
-//   info: [
-//     { title: "Jurisdiction", body: "Federal" },
-//     { title: "Agency", body: "Centers for Disease Control (CDC)" },
-//     { title: "Main Topics", body: "Health, Safety" },
-//     { title: "People & Organizations", body: "UNC Medical School" }
-//   ],
-//   ratings: [
-//     {
-//       title: "Negative Societal Impact",
-//       score: 6.6,
-//       comments: [
-//         { comment: "Lorum ipsum dolorum", score: 6 },
-//         { comment: "Lorum ipsum dolorum", score: 7 },
-//         { comment: "Lorum ipsum dolorum", score: 7 },
-//         { comment: "Lorum ipsum dolorum", score: 6 }
-//       ]
-//     },
-//     { title: "Size of Impact", score: 8.0, comments: [] },
-//     { title: "Potential for Controversy", score: 4.0, comments: [] },
-//     { title: "Surprising", score: 9.0, comments: [] }
-//   ],
-//   source:
-//     "https://www.cdc.gov/steadi/pdf/provider/steadi-rx/STEADIRx-Algorithm_Final.pdf",
-//   cache: "#",
-//   quote:
-//     "Assists healthcare providers as to the best way to increase patient mobility without the risk of falling. Assists healthcare providers as to the best way to mobility without the risk"
-// }
 export default {
   name: "Lead",
   props: {
