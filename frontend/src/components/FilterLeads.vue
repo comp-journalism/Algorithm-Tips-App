@@ -122,9 +122,7 @@ export default {
     },
     clean_filter() {
       return Object.fromEntries(
-        Object.entries(this.form).filter(
-          ([, value]) => value !== undefined && value !== null
-        )
+        Object.entries(this.form).filter(([, value]) => !!value)
       );
     }
   },
