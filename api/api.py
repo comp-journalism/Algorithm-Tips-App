@@ -1,3 +1,4 @@
+import cProfile
 from math import ceil
 import flask
 from flask import request, send_from_directory, send_file
@@ -5,34 +6,43 @@ from flask_cors import CORS
 
 import pymysql
 import pymysql.cursors
+from pymysqlpool.pool import Pool
 
 import configparser
 import json
 
-
-# Load KEYS.config file
-config = configparser.ConfigParser()
-config.read("keys.conf")
-
-# AWS Database information
-aws_username = config.get("AWSDatabaseConfig", "username")
-aws_password = config.get("AWSDatabaseConfig", "password")
-aws_host = config.get("AWSDatabaseConfig", "host")
-aws_database = config.get("AWSDatabaseConfig", "database")
 
 # def create_app():
 app = flask.Flask(__name__)
 CORS(app)
 
 
+global_pool = None
+
+
+def init_pool():
+    # Load KEYS.config file
+    config = configparser.ConfigParser()
+    config.read("keys.conf")
+
+    # AWS Database information
+    aws_username = config.get("AWSDatabaseConfig", "username")
+    aws_password = config.get("AWSDatabaseConfig", "password")
+    aws_host = config.get("AWSDatabaseConfig", "host")
+    aws_database = config.get("AWSDatabaseConfig", "database")
+
+    global global_pool
+
+    global_pool = Pool(user=aws_username, password=aws_password,
+                       host=aws_host, port=3306, db=aws_database, charset='utf8mb4')
+
+
 def make_connection():
-    # TODO: the app should instead instantiate a connection pool on start
-    return pymysql.connect(user=aws_username,  # Username of AWS database
-                           passwd=aws_password,  # AWS Database password
-                           host=aws_host,  # AWS Instance
-                           port=3306,
-                           database=aws_database,
-                           charset='utf8mb4')
+    return global_pool.get_conn()
+
+
+def release_connection(conn):
+    return global_pool.release(conn)
 
 
 def build_leads_query(where, extra=''):
@@ -62,7 +72,7 @@ def get_lead(lead_id):
         cur.execute("select * from crowd_ratings where lead_id = %s;", lead_id)
         ratings = list(cur.fetchall())
         cur.close()
-        db.close()
+        release_connection(db)
         result['ratings'] = ratings
         return flask.jsonify(result)
     else:
@@ -153,7 +163,7 @@ def filter_leads():
         lead['ratings'].append(rating)
 
     cur.close()
-    db.close()
+    release_connection(db)
 
     result = {
         'leads': list(res_map.values()),
