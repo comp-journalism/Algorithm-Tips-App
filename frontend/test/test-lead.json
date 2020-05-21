@@ -1,0 +1,83 @@
+{
+    "description": "Quality rating system that gives each nursing home a rating between 1 and 5 stars based on health inspections, staffing levels, and quality measures.",
+    "discovered_dt": "Fri, 21 Jun 2019 17:18:21 GMT",
+    "document_ext": "html",
+    "document_relevance": 0.871637,
+    "domain": "CMS.GOV",
+    "id": 1420,
+    "jurisdiction": "Federal Agency - Executive",
+    "link": "https://www.cms.gov/medicare/provider-enrollment-and-certification/certificationandcomplianc/fsqrs.html",
+    "name": "Nursing Home Compare Five-Star Quality Rating System",
+    "organizations": "{\"CMS\": 2, \"State\": 1, \"State Ombudsman\": 1}",
+    "people": "{\"Refer\": 1}",
+    "query_term": "rating system",
+    "ratings": [
+        {
+            "controversy": 5,
+            "controversy_explanation": "Our appears to be very objective. ",
+            "id": 26,
+            "lead_id": 1420,
+            "magnitude": 1,
+            "magnitude_explanation": "Many people use nursing homes. ",
+            "news_value": 4,
+            "societal_impact": 5,
+            "societal_impact_explanation": "Judging the effectiveness of nursing homes would be a good thing. ",
+            "surprise": 5,
+            "surprise_explanation": "I am surprised something like this does not exis . "
+        },
+        {
+            "controversy": 1,
+            "controversy_explanation": "If enough people knew what went on, yes there is a huge potential for this to be very controversial.",
+            "id": 27,
+            "lead_id": 1420,
+            "magnitude": 1,
+            "magnitude_explanation": "The elderly people most in need end up in these facilities and the ratings can lead them into the worst facilities. They know how to game the numbers and people end up in bad places because of it.",
+            "news_value": 1.5,
+            "societal_impact": 1,
+            "societal_impact_explanation": "The rating system is completely inadequate. It is possible to fudge the numbers on most of these measures. Also, the ones that can't be fudged can be prepared for in advance of inspections and the inspections do not reveal the true nature of the conditions in these establishments. People viewing these numbers can make grave errors in judgment due to the inadequacy of the methodology.",
+            "surprise": 3,
+            "surprise_explanation": "It is all of those but in the worst way. It is surprising that it is so inadequate. It is unusual that people accept it. It is unexpected that the mediocrity of putting together of such inadequate algorithms can go on unchecked."
+        },
+        {
+            "controversy": 3,
+            "controversy_explanation": "It won't be controversial. It should reflect reality of a facility - how clean and accommodating it is!",
+            "id": 28,
+            "lead_id": 1420,
+            "magnitude": 1,
+            "magnitude_explanation": "More fragile lives (senior people) will be improved...",
+            "news_value": 3,
+            "societal_impact": 4,
+            "societal_impact_explanation": "It will be better for the senior people if such ratings exist!",
+            "surprise": 4,
+            "surprise_explanation": "I don't think is unusual to rate a facility, I think is the right way to go."
+        },
+        {
+            "controversy": 4,
+            "controversy_explanation": "I think most people would be happy with the algorithm as long as the inspections were done by the proper experts. ",
+            "id": 29,
+            "lead_id": 1420,
+            "magnitude": 2,
+            "magnitude_explanation": "The algorithm will probably make it easier for people to choose a nursing home.",
+            "news_value": 3.75,
+            "societal_impact": 4,
+            "societal_impact_explanation": "The algorithm will only rank the nursing homes on relevant information.",
+            "surprise": 5,
+            "surprise_explanation": "I don't see this as unusual at all, it makes sense."
+        },
+        {
+            "controversy": 4,
+            "controversy_explanation": "It probably will be fine. People will trust it as better than nothing. Might get some push back if it turns out to be a flop.",
+            "id": 30,
+            "lead_id": 1420,
+            "magnitude": 2,
+            "magnitude_explanation": "Depends on meaning if substantial, but it will affect the lives of many seniors.",
+            "news_value": 3,
+            "societal_impact": 2,
+            "societal_impact_explanation": "Potential? Sure. If it performed poorly, it could lead people into bad senior homes, and away from good ones.",
+            "surprise": 4,
+            "surprise_explanation": "It doesn't seem cutting edge. Just a program that compiles data and delivers a rating. "
+        }
+    ],
+    "source": "Department of Health and Human Services",
+    "topic": "Health"
+}

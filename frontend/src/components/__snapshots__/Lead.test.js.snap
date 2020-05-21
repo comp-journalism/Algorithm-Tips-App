@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Lead matches the snapshot 1`] = `
+<div class="lead-box" document_relevance="0.871637" domain="CMS.GOV">
+  <b-card-stub bodytag="div" titletag="h4" subtitletag="h6" subtitletextvariant="muted" headertag="div" footertag="div" tag="div" nobody="true">
+    <b-card-body-stub bodytag="div" titletag="h4" subtitletag="h6" subtitletextvariant="muted">
+      <p class="quote">Quality rating system that gives each nursing home a rating between 1 and 5 stars based on health inspections, staffing levels, and quality measures.</p>
+      <div class="source">
+        <external-link-stub href="https://www.cms.gov/medicare/provider-enrollment-and-certification/certificationandcomplianc/fsqrs.html">https://www.cms.gov/medicare/provider-enrollment-and-certification/certificationandcomplianc/fsqrs.html</external-link-stub>&nbsp;
+        (<external-link-stub href="https://algorithm-tips.s3.us-east-2.amazonaws.com/documents/1420.html" class="cache-link">Cache</external-link-stub>)
+      </div>
+      <div class="found-by">Found via a search for “<external-link-stub href="https://www.google.com/search?hl=en&amp;q=%22rating%20system%22+site%3A.gov+-site%3A.nih.gov&amp;as_qdr=w1&amp;lr=en&amp;num=100">rating system</external-link-stub>” on June 21st, 2019</div>
+      <h5>Additional Info</h5>
+      <dl class="row">
+        <dt class="col-sm-4">Jurisdiction</dt>
+        <dd class="col-sm-8">Federal Agency - Executive</dd>
+        <dt class="col-sm-4">Agency</dt>
+        <dd class="col-sm-8">Department of Health and Human Services</dd>
+        <dt class="col-sm-4">Main Topics</dt>
+        <dd class="col-sm-8">Health</dd>
+        <dt class="col-sm-4">People &amp; Organizations</dt>
+        <dd class="col-sm-8"></dd>
+      </dl>
+      <h5>Crowd Ratings</h5>
+    </b-card-body-stub>
+    <b-list-group-stub tag="div" flush="true">
+      <b-list-group-item-stub tag="div" target="_self" event="click" routertag="a">
+        <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Potential for Controversy">
+          <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
+          <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Potential for Controversy</span>
+          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="2.6"></b-progress-bar-stub>
+          </b-progress-stub> <span class="score-display float-right">2.6 / 5</span>
+        </div>
+        <b-collapse-stub id="1420Potential for Controversy" tag="div">
+          <b-table-lite-stub items="[object Object],[object Object],[object Object],[object Object],[object Object]" value="" striped="true" class="comment-table"></b-table-lite-stub>
+        </b-collapse-stub>
+      </b-list-group-item-stub>
+      <b-list-group-item-stub tag="div" target="_self" event="click" routertag="a">
+        <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Size of Impact">
+          <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
+          <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Size of Impact</span>
+          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="4.6"></b-progress-bar-stub>
+          </b-progress-stub> <span class="score-display float-right">4.6 / 5</span>
+        </div>
+        <b-collapse-stub id="1420Size of Impact" tag="div">
+          <b-table-lite-stub items="[object Object],[object Object],[object Object],[object Object],[object Object]" value="" striped="true" class="comment-table"></b-table-lite-stub>
+        </b-collapse-stub>
+      </b-list-group-item-stub>
+      <b-list-group-item-stub tag="div" target="_self" event="click" routertag="a">
+        <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Negative Societal Impact">
+          <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
+          <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Negative Societal Impact</span>
+          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="2.8"></b-progress-bar-stub>
+          </b-progress-stub> <span class="score-display float-right">2.8 / 5</span>
+        </div>
+        <b-collapse-stub id="1420Negative Societal Impact" tag="div">
+          <b-table-lite-stub items="[object Object],[object Object],[object Object],[object Object],[object Object]" value="" striped="true" class="comment-table"></b-table-lite-stub>
+        </b-collapse-stub>
+      </b-list-group-item-stub>
+      <b-list-group-item-stub tag="div" target="_self" event="click" routertag="a">
+        <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Surprising">
+          <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
+          <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Surprising</span>
+          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="1.8"></b-progress-bar-stub>
+          </b-progress-stub> <span class="score-display float-right">1.8 / 5</span>
+        </div>
+        <b-collapse-stub id="1420Surprising" tag="div">
+          <b-table-lite-stub items="[object Object],[object Object],[object Object],[object Object],[object Object]" value="" striped="true" class="comment-table"></b-table-lite-stub>
+        </b-collapse-stub>
+      </b-list-group-item-stub>
+    </b-list-group-stub>
+  </b-card-stub>
+</div>
+`;

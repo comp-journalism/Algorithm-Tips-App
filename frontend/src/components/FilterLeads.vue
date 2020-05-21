@@ -2,7 +2,7 @@
   <div>
     <div class="row">
       <b-form @submit.prevent="submitSearch" class="col-sm-12" id="lead-filter">
-        <b-form-input v-model="form.filter" placeholder="Search..." />
+        <b-form-input id="filter-input" v-model="form.filter" placeholder="Search..." />
         <div id="advanced-toggle" v-b-toggle:advanced-filters>
           <b-icon-chevron-right class="when-closed" />
           <b-icon-chevron-down class="when-open" />
@@ -37,7 +37,7 @@
 
         <b-button-group id="submit-group" class="float-right">
           <b-button to="/db">Reset</b-button>
-          <b-button type="submit" :to="search_path" variant="primary">Search</b-button>
+          <b-button id="submit-search" type="submit" :to="search_path" variant="primary">Search</b-button>
         </b-button-group>
       </b-form>
     </div>
@@ -80,14 +80,15 @@ export default {
     Lead
   },
   data() {
+    const query = this.query || {};
     return {
       loading: true,
       leads: [],
       form: {
-        filter: this.query.filter,
-        from: this.query.from,
-        to: this.query.to,
-        source: this.query.source || null
+        filter: query.filter,
+        from: query.from,
+        to: query.to,
+        source: query.source || null
       },
       page: 0,
       page_count: 1

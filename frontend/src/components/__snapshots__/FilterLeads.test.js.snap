@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FilterLeads should call filter on mount with the query param values 1`] = `
+<div>
+  <div class="row">
+    <b-form-stub id="lead-filter" class="col-sm-12">
+      <b-form-input-stub id="filter-input" value="test" placeholder="Search..." debounce="0" type="text"></b-form-input-stub>
+      <div id="advanced-toggle" role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="advanced-filters">
+        <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
+        <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span>Advanced Filters</span>
+      </div>
+      <b-collapse-stub id="advanced-filters" tag="div">
+        <b-form-group-stub label="Discovered Before:" labelfor="to-date" labelcolssm="3" labelalign="right" feedbackarialive="assertive">
+          <b-form-datepicker-stub id="to-date" startweekday="0" buttonvariant="secondary" calendarwidth="270px" selectedvariant="primary" labeltodaybutton="Select today" todaybuttonvariant="outline-primary" labelresetbutton="Reset" resetbuttonvariant="outline-danger" labelclosebutton="Close" closebuttonvariant="outline-secondary" labelprevdecade="Previous decade" labelprevyear="Previous year" labelprevmonth="Previous month" labelcurrentmonth="Current month" labelnextmonth="Next month" labelnextyear="Next year" labelnextdecade="Next decade" labeltoday="Today" labelselected="Selected date" labelnodateselected="No date selected" labelcalendar="Calendar" labelnav="Calendar navigation" labelhelp="Use cursor keys to navigate calendar dates" dateformatoptions="[object Object]" weekdayheaderformat="short" offset="0" boundary="scrollParent"></b-form-datepicker-stub>
+        </b-form-group-stub>
+        <b-form-group-stub label="Discovered After:" labelfor="from-date" labelcolssm="3" labelalign="right" feedbackarialive="assertive">
+          <b-form-datepicker-stub id="from-date" value="2020-1-20" startweekday="0" buttonvariant="secondary" calendarwidth="270px" selectedvariant="primary" labeltodaybutton="Select today" todaybuttonvariant="outline-primary" labelresetbutton="Reset" resetbuttonvariant="outline-danger" labelclosebutton="Close" closebuttonvariant="outline-secondary" labelprevdecade="Previous decade" labelprevyear="Previous year" labelprevmonth="Previous month" labelcurrentmonth="Current month" labelnextmonth="Next month" labelnextyear="Next year" labelnextdecade="Next decade" labeltoday="Today" labelselected="Selected date" labelnodateselected="No date selected" labelcalendar="Calendar" labelnav="Calendar navigation" labelhelp="Use cursor keys to navigate calendar dates" dateformatoptions="[object Object]" weekdayheaderformat="short" offset="0" boundary="scrollParent"></b-form-datepicker-stub>
+        </b-form-group-stub>
+        <b-form-group-stub label="Source:" labelfor="source-select" labelcolssm="3" labelalign="right" feedbackarialive="assertive">
+          <b-form-select-stub id="source-select" options="[object Object],[object Object],[object Object],[object Object]" valuefield="value" textfield="text" htmlfield="html" disabledfield="disabled" labelfield="label" optionsfield="options" selectsize="0"></b-form-select-stub>
+        </b-form-group-stub>
+      </b-collapse-stub>
+      <b-button-group-stub tag="div" ariarole="group" id="submit-group" class="float-right">
+        <b-button-stub target="_self" to="/db" event="click" routertag="a" variant="secondary" type="button" tag="button">Reset</b-button-stub>
+        <b-button-stub target="_self" to="[object Object]" event="click" routertag="a" variant="primary" type="submit" tag="button" id="submit-search">Search</b-button-stub>
+      </b-button-group-stub>
+    </b-form-stub>
+  </div>
+  <div id="leads" infinite-scroll-disabled="disable_loading" infinite-scroll-distance="10">
+    <div class="row justify-content-center">
+      <lead-stub id="1420" name="Nursing Home Compare Five-Star Quality Rating System" description="Quality rating system that gives each nursing home a rating between 1 and 5 stars based on health inspections, staffing levels, and quality measures." link="https://www.cms.gov/medicare/provider-enrollment-and-certification/certificationandcomplianc/fsqrs.html" ratings="[object Object],[object Object],[object Object],[object Object],[object Object]" jurisdiction="Federal Agency - Executive" source="Department of Health and Human Services" topic="Health" people="{&quot;Refer&quot;: 1}" organizations="{&quot;CMS&quot;: 2, &quot;State&quot;: 1, &quot;State Ombudsman&quot;: 1}" query_term="rating system" discovered_dt="Fri, 21 Jun 2019 17:18:21 GMT" document_ext="html" headerlink="true" document_relevance="0.871637" domain="CMS.GOV"></lead-stub>
+    </div>
+  </div>
+  <!---->
+</div>
+`;
