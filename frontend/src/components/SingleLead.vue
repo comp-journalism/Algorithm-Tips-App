@@ -19,16 +19,14 @@ export default {
       loadLead: "leads/load"
     })
   },
-  data: () => {
-    return { lead: null };
-  },
   computed: {
-    ...mapGetters({ getLead: "leads/find" })
+    ...mapGetters({ getLead: "leads/find" }),
+    lead() {
+      return this.getLead(this.id);
+    }
   },
   mounted() {
-    this.loadLead(this.id).then(() => {
-      this.lead = this.getLead(this.id);
-    });
+    this.loadLead(this.id);
   },
   components: {
     Lead: Lead

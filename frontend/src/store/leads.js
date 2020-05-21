@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { api_url } from '../api';
+import Vue from 'vue';
 
 export const STORE_LEAD = 'STORE_LEAD';
 export const STORE_FILTER = 'STORE_FILTER';
+export const SET_FLAG = 'SET_FLAG';
 
 function filterKey(params) {
     const entries = Object.entries(params);
@@ -22,18 +24,21 @@ export default {
     },
     mutations: {
         [STORE_LEAD](state, lead) {
-            state.leads[lead.id] = lead;
+            Vue.set(state.leads, lead.id, lead);
         },
         [STORE_FILTER](state, { num_pages, page, ids, filter }) {
             const key = filterKey(filter);
             if (!state.filters[key]) {
-                state.filters[key] = {
+                Vue.set(state.filters, key, {
                     num_pages,
                     page_contents: {}
-                };
+                });
             }
 
-            state.filters[key].page_contents[page] = ids;
+            Vue.set(state.filters[key].page_contents, page, ids);
+        },
+        [SET_FLAG](state, { id, flag }) {
+            Vue.set(state.leads[id], 'flagged', flag);
         }
     },
     actions: {

@@ -18,6 +18,8 @@
 <script>
 import { mapMutations } from "vuex";
 import { STORE_USER } from "./store/user";
+import axios from "axios";
+import { api_url } from "./api";
 
 export default {
   name: "App",
@@ -30,8 +32,22 @@ export default {
   methods: {
     login(user) {
       console.log(user);
-      this.user = user;
       this.storeUser(user);
+      axios({
+        method: "POST",
+        url: api_url("auth/signin"),
+        data: { id_token: user.wc.id_token },
+        headers: {
+          "Content-Type": "application/json"
+        },
+        withCredentials: true
+      })
+        .then(res => {
+          console.log("login succeeded", res);
+        })
+        .catch(res => {
+          console.error(res);
+        });
     },
     ...mapMutations({
       storeUser: `user/${STORE_USER}`

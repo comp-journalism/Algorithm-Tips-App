@@ -3,20 +3,25 @@ from math import ceil
 import flask
 from flask import request, send_from_directory, send_file
 from flask_cors import CORS
+import configparser
 
 import pymysql.cursors
 from api.db import init_pool, make_connection, release_connection
-from api.auth import signup, parse_token
+from api.auth import signup, parse_token, auth
 from api.flags import flags
 
 import json
-
+from os import environ
 
 # def create_app():
 app = flask.Flask(__name__)
-CORS(app)
+cfg = configparser.ConfigParser()
+cfg.read('keys.conf')
+app.secret_key = cfg.get('flask', 'session-key')
+CORS(app, supports_credentials='DEBUG' in environ)
 
 app.register_blueprint(flags)
+app.register_blueprint(auth)
 app.before_first_request(init_pool)
 
 LEAD_FIELDS = """
@@ -40,7 +45,7 @@ def get_lead(lead_id):
 
     query = f"""
         select {LEAD_FIELDS}
-        from annotated leads al
+        from annotated_leads al
         join leads l on al.lead_id = l.id
         where l.id = %s and al.is_published = 1;
     """

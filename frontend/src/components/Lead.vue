@@ -6,7 +6,9 @@
           <h5>{{ name }}</h5>
         </router-link>
         <h5 v-else>{{ name }}</h5>
-        <a class="float-right" href="#">Add Flag</a>
+        <b-spinner small class="float-right" v-if="flagPending" />
+        <a class="float-right" href="#" @click="setFlag" v-else-if="!flagged">Add Flag</a>
+        <a class="float-right" href="#" @click="unsetFlag" v-else>Remove Flag</a>
       </template>
       <b-card-body>
         <p class="quote">{{ description }}</p>
@@ -64,6 +66,10 @@
 
 <script>
 import moment from "moment";
+import axios from "axios";
+import { mapMutations } from "vuex";
+import { SET_FLAG } from "../store/leads";
+import { api_url } from "../api";
 import externalLink from "./external-link.vue";
 
 export default {
@@ -85,7 +91,48 @@ export default {
     query_term: String,
     discovered_dt: String,
     document_ext: String,
+    flagged: Boolean,
     "header-link": Boolean
+  },
+  data: () => {
+    return {
+      flagPending: false
+    };
+  },
+  methods: {
+    ...mapMutations({
+      updateFlag: `leads/${SET_FLAG}`
+    }),
+    async setFlag() {
+      try {
+        this.flagPending = true;
+        await axios.put(
+          api_url(`flag/${this.id}`),
+          {},
+          { withCredentials: true }
+        );
+
+        this.updateFlag({ id: this.id, flag: true });
+      } catch (err) {
+        console.error("Unable to set flag", err);
+      } finally {
+        this.flagPending = false;
+      }
+    },
+    async unsetFlag() {
+      try {
+        this.flagPending = true;
+        await axios.delete(api_url(`flag/${this.id}`), {
+          withCredentials: true
+        });
+
+        this.updateFlag({ id: this.id, flag: false });
+      } catch (err) {
+        console.error("Unable to unset flag", err);
+      } finally {
+        this.flagPending = false;
+      }
+    }
   },
   computed: {
     page_url() {
