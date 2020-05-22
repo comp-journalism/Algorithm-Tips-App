@@ -7,10 +7,10 @@
             <h5>{{ lead.name }}</h5>
           </router-link>
           <h5 v-else>{{ lead.name }}</h5>
-          <b-button size="sm" @click="setFlag" v-if="!lead.flagged">
+          <b-button size="sm" @click="setFlag" v-if="!lead.flagged" :disabled="!signedIn">
             <b-spinner small class="flag-pending" v-show="flagPending" />Add Flag
           </b-button>
-          <b-button size="sm" @click="unsetFlag" v-else>
+          <b-button size="sm" @click="unsetFlag" v-else :disabled="!signedIn">
             <b-spinner small class="flag-pending" v-show="flagPending" />Remove Flag
           </b-button>
         </div>
@@ -125,7 +125,8 @@ export default {
   },
   computed: {
     ...mapGetters({
-      find: "leads/find"
+      find: "leads/find",
+      signedIn: "user/signedIn"
     }),
     lead() {
       return this.find(this.id);
