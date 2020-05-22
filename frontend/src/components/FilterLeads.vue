@@ -57,10 +57,9 @@
       v-infinite-scroll="loadMore"
       infinite-scroll-disabled="disable_loading"
       infinite-scroll-distance="10"
+      class="row justify-content-center"
     >
-      <div v-bind:key="id" v-for="id in lead_ids" class="row justify-content-center">
-        <Lead :id="id" header-link />
-      </div>
+      <Lead :key="id" v-for="id in lead_ids" :id="id" header-link />
     </div>
     <div id="spinner-container" class="row justify-content-center" v-if="loading">
       <b-spinner />

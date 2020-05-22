@@ -2,13 +2,18 @@
   <div class="lead-box">
     <b-card no-body>
       <template v-slot:header>
-        <router-link :to="page_url" v-if="headerLink" class="header-link">
-          <h5>{{ lead.name }}</h5>
-        </router-link>
-        <h5 v-else>{{ lead.name }}</h5>
-        <b-spinner small class="float-right" v-show="flagPending" />
-        <a class="float-right" href="#" @click="setFlag" v-if="!lead.flagged">Add Flag</a>
-        <a class="float-right" href="#" @click="unsetFlag" v-else>Remove Flag</a>
+        <div class="d-flex justify-content-between align-items-center">
+          <router-link :to="page_url" v-if="headerLink" class="header-link">
+            <h5>{{ lead.name }}</h5>
+          </router-link>
+          <h5 v-else>{{ lead.name }}</h5>
+          <b-button size="sm" @click="setFlag" v-if="!lead.flagged">
+            <b-spinner small class="flag-pending" v-show="flagPending" />Add Flag
+          </b-button>
+          <b-button size="sm" @click="unsetFlag" v-else>
+            <b-spinner small class="flag-pending" v-show="flagPending" />Remove Flag
+          </b-button>
+        </div>
       </template>
       <b-card-body>
         <p class="quote">{{ lead.description }}</p>
@@ -255,6 +260,10 @@ export default {
 
   a.header-link {
     color: initial;
+  }
+
+  .flag-pending {
+    margin-right: 1em;
   }
 }
 </style>
