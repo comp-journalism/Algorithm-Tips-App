@@ -1,6 +1,6 @@
 <template>
   <div class="row justify-content-center">
-    <Lead v-if="lead" v-bind="lead" />
+    <Lead v-if="loaded" :id="id" />
     <em v-else-if="error">Unable to load lead: {{ error.message }}</em>
     <b-spinner v-else />
   </div>
@@ -22,19 +22,21 @@ export default {
   },
   data: () => {
     return {
-      error: null
+      error: null,
+      loaded: false
     };
   },
   computed: {
-    ...mapGetters({ getLead: "leads/find" }),
-    lead() {
-      return this.getLead(this.id);
-    }
+    ...mapGetters({ getLead: "leads/find" })
   },
   mounted() {
-    this.loadLead(this.id).catch(err => {
-      this.error = err;
-    });
+    this.loadLead(this.id)
+      .then(() => {
+        this.loaded = true;
+      })
+      .catch(err => {
+        this.error = err;
+      });
   },
   components: {
     Lead: Lead

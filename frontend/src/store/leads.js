@@ -91,7 +91,7 @@ export default {
                 return [];
             }
 
-            return meta.page_contents[page].map(id => state.leads[id]);
+            return meta.page_contents[page];
         },
         'filter-pages': (state) => (filter) => {
             const meta = state.filters[filterKey(filter)];

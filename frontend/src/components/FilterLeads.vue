@@ -58,8 +58,8 @@
       infinite-scroll-disabled="disable_loading"
       infinite-scroll-distance="10"
     >
-      <div v-bind:key="lead.id" v-for="lead in leads" class="row justify-content-center">
-        <Lead v-bind="lead" header-link />
+      <div v-bind:key="id" v-for="id in lead_ids" class="row justify-content-center">
+        <Lead :id="id" header-link />
       </div>
     </div>
     <div id="spinner-container" class="row justify-content-center" v-if="loading">
@@ -89,7 +89,7 @@ export default {
     return {
       error: null,
       loading: true,
-      leads: [],
+      lead_ids: [],
       form: {
         filter: query.filter,
         from: query.from,
@@ -112,7 +112,9 @@ export default {
 
       this.filterLeads({ params: filter, page: this.page })
         .then(() => {
-          this.leads = this.leads.concat(this.getFilter(filter, this.page));
+          this.lead_ids = this.lead_ids.concat(
+            this.getFilter(filter, this.page)
+          );
           this.page_count = this.getFilterPages(filter);
           this.loading = false;
         })
@@ -141,10 +143,11 @@ export default {
   computed: {
     ...mapGetters({
       getFilter: "leads/filter-get",
-      getFilterPages: "leads/filter-pages"
+      getFilterPages: "leads/filter-pages",
+      getLead: "leads/find"
     }),
     no_results() {
-      return !this.loading && this.leads.length === 0;
+      return !this.loading && this.lead_ids.length === 0;
     },
     search_path() {
       return {

@@ -3,31 +3,31 @@
     <b-card no-body>
       <template v-slot:header>
         <router-link :to="page_url" v-if="headerLink" class="header-link">
-          <h5>{{ name }}</h5>
+          <h5>{{ lead.name }}</h5>
         </router-link>
-        <h5 v-else>{{ name }}</h5>
-        <b-spinner small class="float-right" v-if="flagPending" />
-        <a class="float-right" href="#" @click="setFlag" v-else-if="!flagged">Add Flag</a>
+        <h5 v-else>{{ lead.name }}</h5>
+        <b-spinner small class="float-right" v-show="flagPending" />
+        <a class="float-right" href="#" @click="setFlag" v-if="!lead.flagged">Add Flag</a>
         <a class="float-right" href="#" @click="unsetFlag" v-else>Remove Flag</a>
       </template>
       <b-card-body>
-        <p class="quote">{{ description }}</p>
+        <p class="quote">{{ lead.description }}</p>
         <!-- prettyhtml-preserve-whitespace -->
         <div class="source">
-          <external-link :href="link">{{ link }}</external-link>&nbsp;
+          <external-link :href="lead.link">{{ lead.link }}</external-link>&nbsp;
           (<external-link class="cache-link" v-if="cache" :href="cache">Cache</external-link>)
         </div>
         <!-- prettyhtml-preserve-whitespace -->
-        <div class="found-by">Found via a search for &ldquo;<external-link :href="query_url">{{ query_term }}</external-link>&rdquo; on {{ discovered }}</div>
+        <div class="found-by">Found via a search for &ldquo;<external-link :href="query_url">{{ lead.query_term }}</external-link>&rdquo; on {{ discovered }}</div>
 
         <h5>Additional Info</h5>
         <dl class="row">
           <dt class="col-sm-4">Jurisdiction</dt>
-          <dd class="col-sm-8">{{ jurisdiction }}</dd>
+          <dd class="col-sm-8">{{ lead.jurisdiction }}</dd>
           <dt class="col-sm-4">Agency</dt>
-          <dd class="col-sm-8">{{ source }}</dd>
+          <dd class="col-sm-8">{{ lead.source }}</dd>
           <dt class="col-sm-4">Main Topics</dt>
-          <dd class="col-sm-8">{{ topic }}</dd>
+          <dd class="col-sm-8">{{ lead.topic }}</dd>
           <dt class="col-sm-4">People &amp; Organizations</dt>
           <dd class="col-sm-8">{{ people_orgs.join(", ") }}</dd>
         </dl>
@@ -67,7 +67,7 @@
 <script>
 import moment from "moment";
 import axios from "axios";
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import { SET_FLAG } from "../store/leads";
 import { api_url } from "../api";
 import externalLink from "./external-link.vue";
@@ -77,23 +77,7 @@ export default {
   components: {
     "external-link": externalLink
   },
-  props: {
-    id: Number,
-    name: String,
-    description: String,
-    link: String,
-    ratings: Array,
-    jurisdiction: String,
-    source: String,
-    topic: String,
-    people: String,
-    organizations: String,
-    query_term: String,
-    discovered_dt: String,
-    document_ext: String,
-    flagged: Boolean,
-    "header-link": Boolean
-  },
+  props: { id: Number, headerLink: Boolean },
   data: () => {
     return {
       flagPending: false
@@ -135,20 +119,26 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      find: "leads/find"
+    }),
+    lead() {
+      return this.find(this.id);
+    },
     page_url() {
       return `/lead/${this.id}`;
     },
     cache() {
-      return `https://algorithm-tips.s3.us-east-2.amazonaws.com/documents/${this.id}.${this.document_ext}`;
+      return `https://algorithm-tips.s3.us-east-2.amazonaws.com/documents/${this.id}.${this.lead.document_ext}`;
     },
     query_url() {
       return `https://www.google.com/search?hl=en&q=%22${encodeURIComponent(
-        this.query_term
+        this.lead.query_term
       )}%22+site%3A.gov+-site%3A.nih.gov&as_qdr=w1&lr=en&num=100`;
     },
     people_orgs() {
-      const people = JSON.parse(this.people);
-      const orgs = JSON.parse(this.organizations);
+      const people = JSON.parse(this.lead.people);
+      const orgs = JSON.parse(this.lead.organizations);
 
       const filtration = ([, count]) => count >= 10;
       const merged = Object.entries(people)
@@ -161,7 +151,7 @@ export default {
       return merged.map(([name]) => name);
     },
     discovered() {
-      const dt = moment(this.discovered_dt);
+      const dt = moment(this.lead.discovered_dt);
 
       return dt.format("MMMM Do, YYYY");
     },
@@ -195,7 +185,7 @@ export default {
       };
 
       return Object.values(
-        this.ratings.flatMap(mapper).reduce((result, obj) => {
+        this.lead.ratings.flatMap(mapper).reduce((result, obj) => {
           if (!result[obj.category]) {
             result[obj.category] = init(obj);
           }
