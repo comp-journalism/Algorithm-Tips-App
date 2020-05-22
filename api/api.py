@@ -7,7 +7,7 @@ import configparser
 
 import pymysql.cursors
 from api.db import init_pool, make_connection, release_connection
-from api.auth import signup, parse_token, auth, login_used
+from api.auth import signup, parse_token, auth, login_used, login_required
 from api.flags import flags
 
 import json
@@ -80,37 +80,50 @@ def load_ratings(cur, ids):
 @app.route('/lead/<lead_id>')
 @login_used
 def get_lead(uid, lead_id):
-    db = make_connection()
-    cur = db.cursor(pymysql.cursors.DictCursor)
 
-    query = build_lead_selection(uid, where='lead_id = %(lead_id)s')
+    try:
+        db = make_connection()
+        with db.cursor(pymysql.cursors.DictCursor) as cur:
+            query = build_lead_selection(uid, where='lead_id = %(lead_id)s')
 
-    count = cur.execute(query, {
-        'lead_id': lead_id,
-        'uid': uid,
-    })
+            count = cur.execute(query, {
+                'lead_id': lead_id,
+                'uid': uid,
+            })
 
-    if count >= 1:
-        result = cur.fetchone()
+            if count >= 1:
+                result = cur.fetchone()
 
-        # now we load comments for it
-        ratings = load_ratings(cur, [lead_id])
-        cur.close()
+                # now we load comments for it
+                ratings = load_ratings(cur, [lead_id])
+                cur.close()
+                release_connection(db)
+                result['ratings'] = ratings
+                return flask.jsonify(result)
+            else:
+                release_connection(db)
+                return flask.abort(404)
+    finally:
         release_connection(db)
-        result['ratings'] = ratings
-        return flask.jsonify(result)
-    else:
-        release_connection(db)
-        return flask.abort(404)
 
 
 PAGE_SIZE = 5
 
 
 # TODO: this monster needs some pruning/splitting
-@app.route('/leads', methods=('GET', 'POST'))
+@app.route('/leads')
 @login_used
-def filter_leads(uid):
+def filter_all(uid):
+    return filter_leads(uid)
+
+
+@app.route('/leads/flagged')
+@login_required
+def filter_flagged(uid):
+    return filter_leads(uid, flagged=True)
+
+
+def filter_leads(uid, flagged=False):
     """Queries should have the form /api/leads?filter=...&from=...&to=...&source=...&page=n where:
 
     - filter defines the keyword(s) to use to search
@@ -123,10 +136,8 @@ def filter_leads(uid):
     to = request.args.get('to', None)
     source = request.args.get('source', None)
     page = request.args.get('page', 1, int)
-    flagged = request.args.get('flagged', False, bool)
 
     where = []
-    joins = []
 
     if filter_ is not None:
         where.append(
@@ -138,64 +149,60 @@ def filter_leads(uid):
     if source is not None:
         where.append("jurisdiction = %(source)s")
 
-    query = build_lead_selection(uid, where=where, paged=True)
+    query = build_lead_selection(
+        uid, where=where, paged=True, flagged_only=flagged)
 
-    db = make_connection()
     try:
-        cur = db.cursor(pymysql.cursors.DictCursor)
+        db = make_connection()
+        with db.cursor(pymysql.cursors.DictCursor) as cur:
+            qparams = {
+                'filter': filter_,
+                'from': from_,
+                'to': to,
+                'source': source,
+                'page_start': (page - 1) * PAGE_SIZE,
+                'page_size': PAGE_SIZE,
+                'uid': uid
+            }
 
-        qparams = {
-            'filter': filter_,
-            'from': from_,
-            'to': to,
-            'source': source,
-            'page_start': (page - 1) * PAGE_SIZE,
-            'page_size': PAGE_SIZE,
-            'uid': uid
-        }
+            print(cur.mogrify(query, qparams))
+            cur.execute(query, qparams)
 
-        print(cur.mogrify(query, qparams))
-        cur.execute(query, qparams)
+            results = list(cur.fetchall())
 
-        results = list(cur.fetchall())
+            if len(results) == 0:
+                # no need to do more queries. return empty result
+                return flask.jsonify({
+                    'num_pages': 0,
+                    'num_results': 0,
+                    'page': 1,
+                    'leads': []
+                })
 
-        if len(results) == 0:
-            # no need to do more queries. return empty result
-            cur.close()
-            db.close()
-            return flask.jsonify({
-                'num_pages': 0,
-                'num_results': 0,
-                'page': 1,
-                'leads': []
-            })
+            # count total results so we know the page count
+            count_query = build_lead_selection(uid=uid,
+                                               fields='count(*) as num_results', where=where, flagged_only=flagged)
+            cur.execute(count_query, qparams)
 
-        # count total results so we know the page count
-        count_query = build_lead_selection(
-            fields='count(*) as num_results', where=where)
-        cur.execute(count_query, qparams)
+            meta = cur.fetchone()
+            print(meta)
 
-        meta = cur.fetchone()
-        print(meta)
+            meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
+            meta['page'] = page
 
-        meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
-        meta['page'] = page
+            ratings = load_ratings(cur, (res['id'] for res in results))
 
-        ratings = load_ratings(cur, (res['id'] for res in results))
+            res_map = {res['id']: {'ratings': [], **res} for res in results}
 
-        res_map = {res['id']: {'ratings': [], **res} for res in results}
+            for rating in ratings:
+                lead = res_map[rating['lead_id']]
+                lead['ratings'].append(rating)
 
-        for rating in ratings:
-            lead = res_map[rating['lead_id']]
-            lead['ratings'].append(rating)
-
-        cur.close()
-
-        result = {
-            'leads': list(res_map.values()),
-            **meta
-        }
-        return flask.jsonify(result)
+            result = {
+                'leads': list(res_map.values()),
+                **meta
+            }
+            return flask.jsonify(result)
     finally:
         release_connection(db)
 # return app

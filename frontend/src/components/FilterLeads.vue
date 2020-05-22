@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="leads-container">
     <div class="row">
       <b-form @submit.prevent="submitSearch" class="col-sm-12" id="lead-filter">
         <b-form-input id="filter-input" v-model="form.filter" placeholder="Search..." />
@@ -71,6 +71,7 @@
 import Lead from "./Lead.vue";
 import { mapActions, mapGetters } from "vuex";
 import infiniteScroll from "vue-infinite-scroll";
+import EventBus from "../event-bus";
 
 export default {
   name: "FilterLeads",
@@ -78,7 +79,8 @@ export default {
     infiniteScroll
   },
   props: {
-    query: Object
+    query: Object,
+    flagged: Boolean
   },
   components: {
     Lead
@@ -109,12 +111,16 @@ export default {
       this.page += 1;
       this.loading = true;
 
-      this.filterLeads({ params: filter, page: this.page })
+      this.filterLeads({
+        params: filter,
+        page: this.page,
+        flagged: this.flagged
+      })
         .then(() => {
           this.lead_ids = this.lead_ids.concat(
-            this.getFilter(filter, this.page)
+            this.getFilter(filter, this.page, this.flagged)
           );
-          this.page_count = this.getFilterPages(filter);
+          this.page_count = this.getFilterPages(filter, this.flagged);
           this.loading = false;
         })
         .catch(err => {
@@ -143,14 +149,15 @@ export default {
     ...mapGetters({
       getFilter: "leads/filter-get",
       getFilterPages: "leads/filter-pages",
-      getLead: "leads/find"
+      getLead: "leads/find",
+      signedIn: "user/signedIn"
     }),
     no_results() {
       return !this.loading && this.lead_ids.length === 0;
     },
     search_path() {
       return {
-        path: "/db",
+        path: this.$route.path,
         query: this.clean_filter()
       };
     },
@@ -187,7 +194,11 @@ export default {
     }
   },
   mounted() {
-    this.loadMore();
+    if (this.flagged && !this.signedIn) {
+      EventBus.$on("login", this.loadMore.bind(this));
+    } else {
+      this.loadMore();
+    }
   }
 };
 </script>
@@ -215,5 +226,9 @@ export default {
 
 #spinner-container {
   margin-bottom: 2em;
+}
+
+#leads-container {
+  margin-bottom: 3em;
 }
 </style>

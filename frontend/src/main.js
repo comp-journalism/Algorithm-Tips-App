@@ -25,7 +25,10 @@ const router = new VueRouter({
       path: '/lead/:id', component: SingleLead, props: true,
     },
     {
-      path: '/db', component: FilterLeads, props: (route) => { return { query: route.query }; },
+      path: '/db', component: FilterLeads, props: (route) => { return { query: route.query, flagged: false }; },
+    },
+    {
+      path: '/flags', component: FilterLeads, props: (route) => { return { query: route.query, flagged: true }; }
     }
   ]
 });

@@ -53,6 +53,7 @@ def signup(token):
 
         return result['id']
     finally:
+        cur.close()
         release_connection(con)
 
 

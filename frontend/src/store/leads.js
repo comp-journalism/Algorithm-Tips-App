@@ -57,22 +57,25 @@ export default {
                 throw error;
             }
         },
-        async filter({ commit, state }, { params, page }) {
+        async filter({ commit, state }, { params, page, flagged }) {
             const key = filterKey(params);
             if (state.filters[key] && state.filters[key].page_contents[page]) {
                 return;
             }
 
+            const endpoint = flagged ? 'leads/flagged' : 'leads';
+
             try {
-                const res = await axios.get(api_url('leads'), {
+                const res = await axios.get(api_url(endpoint), {
                     params: { ...params, page: page },
+                    withCredentials: true
                 });
 
                 res.data.leads.forEach(lead => commit(STORE_LEAD, lead));
 
                 const ids = res.data.leads.map(({ id }) => id);
                 commit(STORE_FILTER, {
-                    filter: params,
+                    filter: { ...params, flagged },
                     num_pages: res.data.num_pages,
                     ids, page
                 });
@@ -94,16 +97,16 @@ export default {
     },
     getters: {
         find: (state) => (id) => state.leads[Number(id)] || null,
-        'filter-get': (state) => (filter, page) => {
-            const meta = state.filters[filterKey(filter)];
+        'filter-get': (state) => (filter, page, flagged) => {
+            const meta = state.filters[filterKey({ ...filter, flagged })];
             if (!meta) {
                 return [];
             }
 
             return meta.page_contents[page];
         },
-        'filter-pages': (state) => (filter) => {
-            const meta = state.filters[filterKey(filter)];
+        'filter-pages': (state) => (filter, flagged) => {
+            const meta = state.filters[filterKey({ ...filter, flagged })];
             if (!meta) {
                 return null;
             }

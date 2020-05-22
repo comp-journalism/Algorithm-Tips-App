@@ -1,5 +1,6 @@
 import { api_url } from '../api';
 import axios from 'axios';
+import EventBus from '../event-bus';
 
 export const STORE_USER = 'STORE_USER';
 export const CLEAR_USER = 'CLEAR_USER';
@@ -36,6 +37,7 @@ export default {
             });
 
             commit(SET_LOGIN_STATUS, true);
+            EventBus.$emit('login');
         },
         async logout({ commit }) {
             await axios({
@@ -45,6 +47,7 @@ export default {
             });
 
             commit(SET_LOGIN_STATUS, false);
+            EventBus.$emit('logout');
         }
     },
     getters: {

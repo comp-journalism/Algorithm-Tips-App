@@ -31,7 +31,7 @@ export default {
 <style lang="stylus">
 #main {
   margin-top: 2em;
-  max-width: 47em;
+  max-width: 55em;
 }
 
 #b-toaster-top-right {
