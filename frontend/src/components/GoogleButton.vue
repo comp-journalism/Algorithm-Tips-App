@@ -39,13 +39,16 @@ export default {
   methods: {
     ...mapActions({
       login: "user/login",
-      logout: "user/logout"
+      logout: "user/logout",
+      updateFlags: "leads/updateAllFlags",
+      clearFlags: "leads/clearAllFlags"
     }),
     async signout() {
       try {
         await this.auth2.signOut();
         await this.logout();
 
+        this.clearFlags();
         this.$bvToast.toast("You have been logged out.", {
           title: "Logout successful."
         });
@@ -62,20 +65,31 @@ export default {
         variant: "danger"
       });
     },
-    signin(user) {
+    async signin(user) {
       if (!user.wc) {
         // logout --- but this is called by gapi so w/e
         return;
       }
-      this.login(user)
-        .then(() => {
-          this.$bvToast.toast("You have been logged in.", {
-            title: "Login successful."
-          });
-        })
-        .catch(err => {
-          this.loginError(err);
+      try {
+        await this.login(user);
+
+        this.$bvToast.toast("You have been logged in.", {
+          title: "Login successful."
         });
+      } catch (err) {
+        this.loginError(err);
+      }
+
+      try {
+        await this.updateFlags();
+      } catch (err) {
+        console.error(err);
+
+        this.$bvToast.toast("Unable to update flags.", {
+          title: "Error",
+          variant: "danger"
+        });
+      }
     }
   }
 };

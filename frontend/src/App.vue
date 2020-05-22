@@ -33,4 +33,8 @@ export default {
   margin-top: 2em;
   max-width: 47em;
 }
+
+#b-toaster-top-right {
+  margin-top: 5em;
+}
 </style>

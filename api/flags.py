@@ -7,7 +7,37 @@ from pymysql.err import IntegrityError
 
 flags = Blueprint('flags', __name__, url_prefix='/flag')
 
-# listing flags is done in api.py
+
+@flags.route('/list', methods=('POST',))
+@login_required
+def list_flags(uid):
+    """Receives a list of ids as JSON in the message body. Returns a list of flags (True/False) for each id."""
+    try:
+        ids = request.get_json()
+
+        if not isinstance(ids, list):
+            raise ValueError()
+    except:
+        flask.abort(400)
+
+    try:
+        con = make_connection()
+        cur = con.cursor(DictCursor)
+        cur.execute("""
+            select leads.id as id, not isnull(uflags.id) as flagged
+            from leads
+            left join (select id, lead_id from flags where user_id = %(uid)s) as uflags
+                on uflags.lead_id = leads.id
+            where leads.id in %(ids)s; """, {
+            'uid': uid,
+            'ids': tuple(ids)
+        })
+
+        result = {row['id']: row['flagged'] for row in cur.fetchall()}
+
+        return {'flags': [result[id] if id in result else False for id in ids]}
+    finally:
+        release_connection(con)
 
 
 @flags.route('/<lead_id>', methods=('PUT',))

@@ -58,7 +58,6 @@ export default {
             }
         },
         async filter({ commit, state }, { params, page }) {
-            console.log(params, page);
             const key = filterKey(params);
             if (state.filters[key] && state.filters[key].page_contents[page]) {
                 return;
@@ -81,6 +80,16 @@ export default {
                 console.error(error);
                 throw error;
             }
+        },
+        async updateAllFlags({ commit, state }) {
+            const ids = Object.keys(state.leads).map(Number);
+
+            const res = await axios.post(api_url('flag/list'), ids, { withCredentials: true });
+            res.data.flags.forEach((flag, ix) => commit(SET_FLAG, { id: ids[ix], flag }));
+        },
+        clearAllFlags({ commit, state }) {
+            // used on logout to set everything back to "Add Flag"
+            Object.keys(state.leads).forEach(id => commit(SET_FLAG, { id: Number(id), flag: false }));
         }
     },
     getters: {
