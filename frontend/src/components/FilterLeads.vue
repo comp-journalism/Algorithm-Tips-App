@@ -41,7 +41,12 @@
         </b-button-group>
       </b-form>
     </div>
-    <div class="row justify-content-center" v-if="no_results">
+    <div class="row justify-content-center" v-if="error">
+      <p>
+        <em>Unable to load results: {{ error.message }}.</em>
+      </p>
+    </div>
+    <div class="row justify-content-center" v-else-if="no_results">
       <p>
         <em>No results found</em>
       </p>
@@ -82,6 +87,7 @@ export default {
   data() {
     const query = this.query || {};
     return {
+      error: null,
       loading: true,
       leads: [],
       form: {
@@ -104,11 +110,16 @@ export default {
       this.page += 1;
       this.loading = true;
 
-      this.filterLeads({ params: filter, page: this.page }).then(() => {
-        this.leads = this.leads.concat(this.getFilter(filter, this.page));
-        this.page_count = this.getFilterPages(filter);
-        this.loading = false;
-      });
+      this.filterLeads({ params: filter, page: this.page })
+        .then(() => {
+          this.leads = this.leads.concat(this.getFilter(filter, this.page));
+          this.page_count = this.getFilterPages(filter);
+          this.loading = false;
+        })
+        .catch(err => {
+          this.loading = false;
+          this.error = err;
+        });
     },
     clearForm() {
       this.form = {
