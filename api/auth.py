@@ -38,6 +38,7 @@ def signup(token):
     try:
         cur = con.cursor(DictCursor)
 
+        print(uid)
         cur.execute(
             'insert into users (external_id, external_type) values (%s, %s) on duplicate key update id = id;',
             (uid, 'GOOGLE'))
@@ -64,14 +65,20 @@ def parse_token():
         return None
 
 
-def token_required(view):
+def login_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
-        print(session)
         if 'id' not in session:
             return abort(401)
         return view(uid=session['id'], **kwargs)
 
+    return wrapped_view
+
+
+def login_used(view):
+    @wraps(view)
+    def wrapped_view(**kwargs):
+        return view(uid=session.get('id', None), **kwargs)
     return wrapped_view
 
 

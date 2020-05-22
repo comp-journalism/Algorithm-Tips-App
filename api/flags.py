@@ -1,7 +1,7 @@
 import flask
 from flask import Blueprint, request
 from api.db import make_connection, release_connection
-from api.auth import token_required
+from api.auth import login_required
 from pymysql.cursors import DictCursor
 from pymysql.err import IntegrityError
 
@@ -11,7 +11,7 @@ flags = Blueprint('flags', __name__, url_prefix='/flag')
 
 
 @flags.route('/<lead_id>', methods=('PUT',))
-@token_required
+@login_required
 def put_flag(uid, lead_id):
     con = make_connection()
     try:
@@ -27,7 +27,7 @@ def put_flag(uid, lead_id):
 
 
 @flags.route('/<lead_id>', methods=('DELETE',))
-@token_required
+@login_required
 def delete_flag(uid, lead_id):
     con = make_connection()
     try:
