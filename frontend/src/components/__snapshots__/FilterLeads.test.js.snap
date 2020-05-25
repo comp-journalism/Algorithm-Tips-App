@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`FilterLeads should call filter on mount with the query param values 1`] = `
-<div>
+<div id="leads-container">
   <div class="row">
     <b-form-stub id="lead-filter" class="col-sm-12">
       <b-form-input-stub id="filter-input" value="test" placeholder="Search..." debounce="0" type="text"></b-form-input-stub>
@@ -26,10 +26,8 @@ exports[`FilterLeads should call filter on mount with the query param values 1`]
       </b-button-group-stub>
     </b-form-stub>
   </div>
-  <div id="leads" infinite-scroll-disabled="disable_loading" infinite-scroll-distance="10">
-    <div class="row justify-content-center">
-      <lead-stub id="1420" name="Nursing Home Compare Five-Star Quality Rating System" description="Quality rating system that gives each nursing home a rating between 1 and 5 stars based on health inspections, staffing levels, and quality measures." link="https://www.cms.gov/medicare/provider-enrollment-and-certification/certificationandcomplianc/fsqrs.html" ratings="[object Object],[object Object],[object Object],[object Object],[object Object]" jurisdiction="Federal Agency - Executive" source="Department of Health and Human Services" topic="Health" people="{&quot;Refer&quot;: 1}" organizations="{&quot;CMS&quot;: 2, &quot;State&quot;: 1, &quot;State Ombudsman&quot;: 1}" query_term="rating system" discovered_dt="Fri, 21 Jun 2019 17:18:21 GMT" document_ext="html" headerlink="true" document_relevance="0.871637" domain="CMS.GOV"></lead-stub>
-    </div>
+  <div id="leads" infinite-scroll-disabled="disable_loading" infinite-scroll-distance="10" class="row justify-content-center">
+    <lead-stub id="1420" headerlink="true"></lead-stub>
   </div>
   <!---->
 </div>

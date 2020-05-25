@@ -1,30 +1,37 @@
 <template>
   <div>
-    <b-nav-item v-show="loggedIn" @click="signout">Logout</b-nav-item>
-    <b-nav-item v-show="!loggedIn" id="signin-button" ref="signin-button">Login with Google</b-nav-item>
+    <slot name="signout">
+      <b-nav-item v-show="loggedIn" @click="signout">Logout</b-nav-item>
+    </slot>
+    <div ref="signin-button">
+      <slot>
+        <b-nav-item v-show="!loggedIn" id="signin-button">Login with Google</b-nav-item>
+      </slot>
+    </div>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from "vuex";
+import auth2 from "../auth2";
 
 export default {
   name: "GoogleButton",
-  mounted() {
-    // eslint-disable-next-line no-undef
-    gapi.load("auth2", () => {
-      // eslint-disable-next-line no-undef
-      this.auth2 = gapi.auth2.init({
-        // TODO: but this in a cfg file
-        client_id:
-          "741161465779-iarif5gv7i2shgk80gmleg1trdtpb4hp.apps.googleusercontent.com"
-      });
+  props: {
+    noListen: Boolean
+  },
+  async mounted() {
+    this.auth2 = await auth2();
 
-      this.auth2.currentUser.listen(this.signin.bind(this));
+    if (!this.noListen) {
+      this.auth2.currentUser.listen(this.signin);
+    }
 
-      // the click handler is only used to
-      this.auth2.attachClickHandler(this.$refs["signin-button"], {}, () => {});
-    });
+    this.auth2.attachClickHandler(this.$refs["signin-button"], {}, () => {});
+
+    if (this.auth2.isSignedIn.get()) {
+      this.signin(this.auth2.currentUser.get());
+    }
   },
   data: () => {
     return {

@@ -7,16 +7,10 @@
             <h5>{{ lead.name }}</h5>
           </router-link>
           <h5 v-else>{{ lead.name }}</h5>
-          <b-button
-            size="sm"
-            @click="setFlag"
-            v-if="!lead.flagged"
-            :disabled="!signedIn"
-            class="flag-button"
-          >
+          <b-button size="sm" @click="setFlag" v-if="!lead.flagged" class="flag-button">
             <b-spinner small class="flag-pending" v-show="flagPending" />Add Flag
           </b-button>
-          <b-button size="sm" @click="unsetFlag" v-else :disabled="!signedIn" class="flag-button">
+          <b-button size="sm" @click="unsetFlag" v-else class="flag-button">
             <b-spinner small class="flag-pending" v-show="flagPending" />Remove Flag
           </b-button>
         </div>
@@ -98,7 +92,20 @@ export default {
     ...mapMutations({
       updateFlag: `leads/${SET_FLAG}`
     }),
+    redirect_login() {
+      this.$router.push({
+        path: "/login",
+        query: {
+          redirect: this.$route.fullPath
+        }
+      });
+    },
     async setFlag() {
+      if (!this.signedIn) {
+        this.redirect_login();
+        return;
+      }
+
       try {
         this.flagPending = true;
         await axios.put(
@@ -115,6 +122,11 @@ export default {
       }
     },
     async unsetFlag() {
+      if (!this.signedIn) {
+        this.redirect_login();
+        return;
+      }
+
       try {
         this.flagPending = true;
         await axios.delete(api_url(`flag/${this.id}`), {

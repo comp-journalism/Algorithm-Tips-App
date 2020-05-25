@@ -72,6 +72,7 @@ import Lead from "./Lead.vue";
 import { mapActions, mapGetters } from "vuex";
 import infiniteScroll from "vue-infinite-scroll";
 import EventBus from "../event-bus";
+import auth2 from "../auth2";
 
 export default {
   name: "FilterLeads",
@@ -143,6 +144,12 @@ export default {
       return Object.fromEntries(
         Object.entries(this.form).filter(([, value]) => !!value)
       );
+    },
+    redirect_login() {
+      this.$router.push({
+        path: "/login",
+        query: { redirect: this.$route.fullPath }
+      });
     }
   },
   computed: {
@@ -193,12 +200,29 @@ export default {
       ];
     }
   },
-  mounted() {
+  async mounted() {
+    if (this.flagged) {
+      EventBus.$on("logout", this.redirect_login);
+    }
+
     if (this.flagged && !this.signedIn) {
-      EventBus.$on("login", this.loadMore.bind(this));
+      EventBus.$on("login", this.loadMore);
+      try {
+        const auth = await auth2();
+        if (!auth.isSignedIn.get()) {
+          this.redirect_login();
+        }
+      } catch {
+        // unable to authenticate, go to login
+        this.redirect_login();
+      }
     } else {
       this.loadMore();
     }
+  },
+  beforeDestroy() {
+    EventBus.$off("logout", this.redirect_login);
+    EventBus.$off("login", this.loadMore);
   }
 };
 </script>

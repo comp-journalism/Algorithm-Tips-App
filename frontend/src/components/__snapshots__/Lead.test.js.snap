@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Lead matches the snapshot 1`] = `
-<div class="lead-box" document_relevance="0.871637" domain="CMS.GOV">
+<div class="lead-box">
   <b-card-stub bodytag="div" titletag="h4" subtitletag="h6" subtitletextvariant="muted" headertag="div" footertag="div" tag="div" nobody="true">
     <b-card-body-stub bodytag="div" titletag="h4" subtitletag="h6" subtitletextvariant="muted">
       <p class="quote">Quality rating system that gives each nursing home a rating between 1 and 5 stars based on health inspections, staffing levels, and quality measures.</p>
