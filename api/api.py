@@ -80,7 +80,6 @@ def load_ratings(cur, ids):
 @app.route('/lead/<lead_id>')
 @login_used
 def get_lead(uid, lead_id):
-
     try:
         db = make_connection()
         with db.cursor(pymysql.cursors.DictCursor) as cur:
@@ -97,11 +96,9 @@ def get_lead(uid, lead_id):
                 # now we load comments for it
                 ratings = load_ratings(cur, [lead_id])
                 cur.close()
-                release_connection(db)
                 result['ratings'] = ratings
                 return flask.jsonify(result)
             else:
-                release_connection(db)
                 return flask.abort(404)
     finally:
         release_connection(db)
