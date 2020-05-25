@@ -8,6 +8,7 @@ import App from './App.vue';
 import SingleLead from './components/SingleLead.vue';
 import FilterLeads from './components/FilterLeads.vue';
 import Login from './components/Login.vue';
+import PathNotFound from './components/PathNotFound.vue';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -33,6 +34,9 @@ const router = new VueRouter({
     },
     {
       path: '/login', component: Login, props: (route) => { return { redirect: route.query.redirect }; }
+    },
+    {
+      path: '*', component: PathNotFound
     }
   ]
 });
