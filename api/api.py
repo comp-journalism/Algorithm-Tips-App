@@ -9,6 +9,7 @@ import pymysql.cursors
 from api.db import init_pool, make_connection, release_connection
 from api.auth import signup, parse_token, auth, login_used, login_required
 from api.flags import flags
+from api.alerts import alerts
 
 import json
 from os import environ
@@ -22,6 +23,7 @@ CORS(app, supports_credentials='DEBUG' in environ)
 
 app.register_blueprint(flags)
 app.register_blueprint(auth)
+app.register_blueprint(alerts)
 app.before_first_request(init_pool)
 
 LEAD_FIELDS = """

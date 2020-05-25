@@ -52,5 +52,6 @@ export default {
     },
     getters: {
         signedIn: (state) => state.loggedIn,
+        email: (state) => state.user ? state.user.Tt.Du : '',
     }
 }

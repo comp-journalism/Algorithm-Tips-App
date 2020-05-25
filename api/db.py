@@ -1,6 +1,7 @@
 import configparser
 import pymysql
 from pymysqlpool.pool import Pool
+from contextlib import contextmanager
 
 global_pool = None
 
@@ -30,3 +31,12 @@ def make_connection():
 
 def release_connection(conn):
     return global_pool.release(conn)
+
+
+@contextmanager
+def connect():
+    con = make_connection()
+    try:
+        yield con
+    finally:
+        release_connection(con)

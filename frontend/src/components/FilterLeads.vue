@@ -76,6 +76,8 @@ import infiniteScroll from "vue-infinite-scroll";
 import EventBus from "../event-bus";
 import LoginRequired from "./LoginRequired";
 
+import { source_options } from "../constants";
+
 export default {
   name: "FilterLeads",
   directives: {
@@ -178,29 +180,7 @@ export default {
       return this.loading || this.no_results || this.reached_end;
     },
     source_options() {
-      return [
-        { value: null, text: "Any Source" },
-        {
-          label: "Federal",
-          options: [
-            "Federal Agency - Executive",
-            "Federal Agency - Judicial",
-            "Federal Agency - Legislative"
-          ]
-        },
-        {
-          label: "State / Regional",
-          options: [
-            "State/Local Govt",
-            "Interstate Agency",
-            "Native Sovereign Nation"
-          ]
-        },
-        {
-          label: "Local",
-          options: ["City", "County"]
-        }
-      ];
+      return source_options;
     }
   },
   async mounted() {

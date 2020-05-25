@@ -9,6 +9,8 @@ import SingleLead from './components/SingleLead.vue';
 import FilterLeads from './components/FilterLeads.vue';
 import Login from './components/Login.vue';
 import PathNotFound from './components/PathNotFound.vue';
+import Alerts from './components/Alerts.vue';
+import AlertBuilder from './components/AlertBuilder.vue';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -34,6 +36,15 @@ const router = new VueRouter({
     },
     {
       path: '/login', component: Login, props: (route) => { return { redirect: route.query.redirect }; }
+    },
+    {
+      path: '/alerts', component: Alerts
+    },
+    {
+      path: '/alerts/create', component: AlertBuilder,
+    },
+    {
+      path: '/alerts/edit', component: AlertBuilder, props: (route) => { return { id: route.query.id }; }
     },
     {
       path: '*', component: PathNotFound
