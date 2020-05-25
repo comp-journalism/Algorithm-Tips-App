@@ -1,70 +1,72 @@
 <template>
-  <div id="leads-container">
-    <div class="row">
-      <b-form @submit.prevent="submitSearch" class="col-sm-12" id="lead-filter">
-        <b-form-input id="filter-input" v-model="form.filter" placeholder="Search..." />
-        <div id="advanced-toggle" v-b-toggle:advanced-filters>
-          <b-icon-chevron-right class="when-closed" />
-          <b-icon-chevron-down class="when-open" />
-          <span>Advanced Filters</span>
-        </div>
-        <b-collapse id="advanced-filters">
-          <b-form-group
-            label="Discovered Before:"
-            label-for="to-date"
-            label-cols-sm="3"
-            label-align="right"
-          >
-            <b-form-datepicker id="to-date" v-model="form.to" />
-          </b-form-group>
-          <b-form-group
-            label="Discovered After:"
-            label-for="from-date"
-            label-cols-sm="3"
-            label-align="right"
-          >
-            <b-form-datepicker id="from-date" v-model="form.from" />
-          </b-form-group>
-          <b-form-group
-            label="Source:"
-            label-for="source-select"
-            label-cols-sm="3"
-            label-align="right"
-          >
-            <b-form-select id="source-select" v-model="form.source" :options="source_options"></b-form-select>
-          </b-form-group>
-        </b-collapse>
+  <login-required :disabled="!flagged">
+    <div id="leads-container">
+      <div class="row">
+        <b-form @submit.prevent="submitSearch" class="col-sm-12" id="lead-filter">
+          <b-form-input id="filter-input" v-model="form.filter" placeholder="Search..." />
+          <div id="advanced-toggle" v-b-toggle:advanced-filters>
+            <b-icon-chevron-right class="when-closed" />
+            <b-icon-chevron-down class="when-open" />
+            <span>Advanced Filters</span>
+          </div>
+          <b-collapse id="advanced-filters">
+            <b-form-group
+              label="Discovered Before:"
+              label-for="to-date"
+              label-cols-sm="3"
+              label-align="right"
+            >
+              <b-form-datepicker id="to-date" v-model="form.to" />
+            </b-form-group>
+            <b-form-group
+              label="Discovered After:"
+              label-for="from-date"
+              label-cols-sm="3"
+              label-align="right"
+            >
+              <b-form-datepicker id="from-date" v-model="form.from" />
+            </b-form-group>
+            <b-form-group
+              label="Source:"
+              label-for="source-select"
+              label-cols-sm="3"
+              label-align="right"
+            >
+              <b-form-select id="source-select" v-model="form.source" :options="source_options"></b-form-select>
+            </b-form-group>
+          </b-collapse>
 
-        <b-button-group id="submit-group" class="float-right">
-          <b-button to="/db">Reset</b-button>
-          <b-button id="submit-search" type="submit" :to="search_path" variant="primary">Search</b-button>
-        </b-button-group>
-      </b-form>
+          <b-button-group id="submit-group" class="float-right">
+            <b-button to="/db">Reset</b-button>
+            <b-button id="submit-search" type="submit" :to="search_path" variant="primary">Search</b-button>
+          </b-button-group>
+        </b-form>
+      </div>
+      <div class="row justify-content-center" v-if="error">
+        <p>
+          <em>Unable to load results: {{ error.message }}.</em>
+        </p>
+      </div>
+      <div class="row justify-content-center" v-else-if="no_results">
+        <p>
+          <em>No results found</em>
+        </p>
+      </div>
+      <div
+        id="leads"
+        v-else
+        v-infinite-scroll="loadMore"
+        infinite-scroll-disabled="disable_loading"
+        infinite-scroll-distance="10"
+        class="row justify-content-center"
+      >
+        <Lead :key="id" v-for="id in lead_ids" :id="id" header-link />
+      </div>
+      <div id="spinner-container" class="row justify-content-center" v-if="loading">
+        <b-spinner />
+      </div>
     </div>
-    <div class="row justify-content-center" v-if="error">
-      <p>
-        <em>Unable to load results: {{ error.message }}.</em>
-      </p>
-    </div>
-    <div class="row justify-content-center" v-else-if="no_results">
-      <p>
-        <em>No results found</em>
-      </p>
-    </div>
-    <div
-      id="leads"
-      v-else
-      v-infinite-scroll="loadMore"
-      infinite-scroll-disabled="disable_loading"
-      infinite-scroll-distance="10"
-      class="row justify-content-center"
-    >
-      <Lead :key="id" v-for="id in lead_ids" :id="id" header-link />
-    </div>
-    <div id="spinner-container" class="row justify-content-center" v-if="loading">
-      <b-spinner />
-    </div>
-  </div>
+  </login-required>
 </template>
 
 <script>
@@ -72,7 +74,7 @@ import Lead from "./Lead.vue";
 import { mapActions, mapGetters } from "vuex";
 import infiniteScroll from "vue-infinite-scroll";
 import EventBus from "../event-bus";
-import auth2 from "../auth2";
+import LoginRequired from "./LoginRequired";
 
 export default {
   name: "FilterLeads",
@@ -84,6 +86,7 @@ export default {
     flagged: Boolean
   },
   components: {
+    "login-required": LoginRequired,
     Lead
   },
   data() {
@@ -201,27 +204,13 @@ export default {
     }
   },
   async mounted() {
-    if (this.flagged) {
-      EventBus.$on("logout", this.redirect_login);
-    }
-
     if (this.flagged && !this.signedIn) {
       EventBus.$on("login", this.loadMore);
-      try {
-        const auth = await auth2();
-        if (!auth.isSignedIn.get()) {
-          this.redirect_login();
-        }
-      } catch {
-        // unable to authenticate, go to login
-        this.redirect_login();
-      }
     } else {
       this.loadMore();
     }
   },
   beforeDestroy() {
-    EventBus.$off("logout", this.redirect_login);
     EventBus.$off("login", this.loadMore);
   }
 };

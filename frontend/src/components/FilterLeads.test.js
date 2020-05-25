@@ -118,13 +118,13 @@ describe('FilterLeads', () => {
     });
 
     it('should redirect to login if flagged and not logged in', async () => {
-        router.push('/db/flagged');
+        router.push('/flags');
         const el = mountFilter({}, true);
 
         await Vue.nextTick();
         expect(router.currentRoute.path).toBe('/login');
         expect(router.currentRoute.query).toEqual({
-            redirect: '/db/flagged'
+            redirect: '/flags'
         });
 
         el.destroy();
