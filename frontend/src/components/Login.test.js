@@ -36,7 +36,7 @@ describe('Lead', () => {
     });
 
     it('should not redirect on load if not signed in', () => {
-        const el = shallowMount(Login, {
+        shallowMount(Login, {
             store, router, localVue, propsData: {
                 redirect: '/test'
             }
@@ -48,7 +48,7 @@ describe('Lead', () => {
     it('should redirect on load if signed in', () => {
         shouldRedirect = true;
 
-        const el = shallowMount(Login, {
+        shallowMount(Login, {
             store, router, localVue, propsData: {
                 redirect: '/test'
             }
@@ -60,7 +60,7 @@ describe('Lead', () => {
     it('should redirect when the "login" event is sent onto the EventBus', async () => {
         // since this is a global event bus, other tests may be running. remove their event handlers
         EventBus.$off('login');
-        const el = shallowMount(Login, {
+        shallowMount(Login, {
             store, router, localVue, propsData: {
                 redirect: '/test'
             }
