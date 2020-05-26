@@ -30,6 +30,18 @@
         </b-tbody>
       </b-table-simple>
       <b-button to="/alerts/create">Create Alert</b-button>
+      <b-modal
+        ref="delete-modal"
+        centered
+        title="Are you sure?"
+        ok-title="Delete"
+        ok-variant="danger"
+        @hidden="cancelRemove"
+        @ok="commitRemove"
+        :visible="pendingDeletion !== null"
+      >
+        <p>Deleting an alert is permanent. Are you sure you want to do this?</p>
+      </b-modal>
     </div>
   </login-required>
 </template>
@@ -42,12 +54,33 @@ import { frequency_options } from "../constants";
 export default {
   name: "Alerts",
   components: { LoginRequired },
+  data() {
+    return {
+      pendingDeletion: null
+    };
+  },
   methods: {
     ...mapActions("alerts", {
-      listAlerts: "list"
+      listAlerts: "list",
+      deleteAlert: "remove"
     }),
     remove(alert) {
       console.log(alert);
+      this.pendingDeletion = alert.id;
+    },
+    commitRemove() {
+      try {
+        this.deleteAlert(this.pendingDeletion);
+        this.pendingDeletion = null;
+      } catch (err) {
+        this.$bvToast.toast(`Unable to delete alert: ${err.message}`, {
+          title: "Error",
+          variant: "danger"
+        });
+      }
+    },
+    cancelRemove() {
+      this.pendingDeletion = null;
     },
     edit_path(alert) {
       return {
