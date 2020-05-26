@@ -28,6 +28,7 @@ const BASE_TITLE = "Algorithm Tips - Resources and leads for investigating algor
 const router = new VueRouter({
   mode: 'history',
   routes: [
+    { path: '/', redirect: { path: '/db' } },
     {
       path: '/lead/:id', component: SingleLead, props: true,
       meta: { title: `Lead | ${BASE_TITLE}` }
