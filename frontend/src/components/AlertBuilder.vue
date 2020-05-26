@@ -2,7 +2,10 @@
   <login-required>
     <div>
       <div class="row">
-        <h2>Create Alert</h2>
+        <h2>
+          <template v-if="edit">Edit</template>
+          <template v-else>Create</template> Alert
+        </h2>
       </div>
       <div class="row">
         <b-form @submit.prevent="submit" class="w-100">
@@ -25,8 +28,18 @@
             ></b-form-input>
           </b-form-group>
 
-          <b-button class="float-right" type="submit">Submit</b-button>
+          <b-button-group class="float-right">
+            <b-button @click="testFilter">Test Filter</b-button>
+            <b-button type="submit" variant="primary">Submit</b-button>
+          </b-button-group>
         </b-form>
+      </div>
+      <div class="mt-5 row justify-contents-center" v-if="loading || testResults !== null">
+        <b-spinner v-if="loading" />
+        <p v-else-if="testResults.length === 0">
+          <em>No results found.</em>
+        </p>
+        <Lead v-else v-for="id in testResults" :id="id" :key="id" />
       </div>
     </div>
   </login-required>
@@ -35,12 +48,13 @@
 <script>
 import Vue from "vue";
 import LoginRequired from "./LoginRequired";
+import Lead from "./Lead";
 import { source_options, frequency_options } from "../constants";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
   name: "AlertBuilder",
-  components: { LoginRequired },
+  components: { LoginRequired, Lead },
   props: ["id"],
   data() {
     return {
@@ -49,17 +63,23 @@ export default {
         source: null,
         frequency: 0,
         recipient: ""
-      }
+      },
+      testResults: null,
+      loading: false
     };
   },
   computed: {
     ...mapGetters("user", ["email"]),
     ...mapGetters("alerts", ["find"]),
+    ...mapGetters("leads", { getFilter: "filter-get" }),
     sources() {
       return source_options;
     },
     freqs() {
       return frequency_options;
+    },
+    edit() {
+      return !!this.id;
     }
   },
   async mounted() {
@@ -79,6 +99,26 @@ export default {
   },
   methods: {
     ...mapActions("alerts", ["update", "create", "load"]),
+    ...mapActions("leads", ["filter"]),
+    async testFilter() {
+      const query = {};
+      if (this.form.filter) {
+        query.filter = this.form.filter;
+      }
+      if (this.form.source) {
+        query.source = this.form.source;
+      }
+
+      this.loading = true;
+      await this.filter({
+        page: 1,
+        flagged: false,
+        params: query
+      });
+
+      this.testResults = this.getFilter(query, 1, false);
+      this.loading = false;
+    },
     async submit() {
       if (this.form.recipient === "") {
         this.form.recipient = this.email;
