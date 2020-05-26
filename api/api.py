@@ -109,7 +109,6 @@ def get_lead(uid, lead_id):
 PAGE_SIZE = 5
 
 
-# TODO: this monster needs some pruning/splitting
 @app.route('/leads')
 @login_used
 def filter_all(uid):
