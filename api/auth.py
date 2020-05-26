@@ -23,30 +23,31 @@ def validate_token(token):
     if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
         return None
 
-    return idinfo['sub']
+    return idinfo
 
 
 def signup(token):
     """Validates the given token, and then adds them to the users table if
     validation succeeds. Returns the INTERNAL user id on success. Otherwise, None."""
-    uid = validate_token(token)
+    info = validate_token(token)
 
-    if uid is None:
+    if info is None:
         return None
 
     con = make_connection()
     try:
         cur = con.cursor(DictCursor)
 
-        print(uid)
+        email = info['email'] if info['email_verified'] else None
+
         cur.execute(
-            'insert into users (external_id, external_type) values (%s, %s) on duplicate key update id = id;',
-            (uid, 'GOOGLE'))
+            'insert into users (external_id, external_type, email) values (%s, %s, %s) on duplicate key update id = id;',
+            (info['sub'], 'GOOGLE', email))
 
         # cannot use last_insert_id() because we may not actually insert anything
         cur.execute(
             'select id from users where external_id = %s and external_type = %s',
-            (uid, 'GOOGLE')
+            (info['sub'], 'GOOGLE')
         )
 
         result = cur.fetchone()

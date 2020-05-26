@@ -19,6 +19,11 @@
             <b-td>{{ alert.filter }}</b-td>
             <b-td>{{ alert.recipient }}</b-td>
             <b-td class="row-controls text-right">
+              <b-icon-exclamation-circle
+                v-if="!alert.confirmed"
+                v-b-popover.hover.top="'This email has not been confirmed and will not receive alerts. If you have not received a confirmation email, click this button to resend it.'"
+                title="Email Not Confirmed"
+              />
               <router-link :to="edit_path(alert)">
                 <b-icon-pencil />
               </router-link>

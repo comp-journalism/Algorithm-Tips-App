@@ -13,7 +13,10 @@ alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 def lookup_alert(uid, alert_id):
     with connect() as con, con.cursor(DictCursor) as cur:
         count = cur.execute(
-            'select id, filter, recipient, source, frequency from alerts where id = %s and user_id = %s', (alert_id, uid))
+            """select alerts.id, filter, recipient, source, frequency, recipient = users.email as confirmed
+            from alerts
+            join users on user_id = user.id
+            where id = %s and user_id = %s""", (alert_id, uid))
         if count == 0:
             # does not exist or no access
             return flask.abort(404)
@@ -66,7 +69,10 @@ def delete_alert(uid, alert_id):
 def list_alerts(uid):
     with connect() as con, con.cursor(DictCursor) as cur:
         count = cur.execute(
-            'select id, filter, recipient, source, frequency from alerts where user_id = %s', (uid,))
+            """select alerts.id, filter, recipient, source, frequency, recipient = users.email as confirmed
+            from alerts
+            join users on user_id = users.id
+            where user_id = %s""", (uid,))
         if count == 0:
             return {'alerts': []}
 
