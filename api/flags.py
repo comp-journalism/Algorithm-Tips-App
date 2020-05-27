@@ -1,9 +1,10 @@
 import flask
 from flask import Blueprint, request
-from api.db import make_connection, release_connection
+from sqlalchemy.sql import select, text, and_
+from sqlalchemy.exc import IntegrityError
+from api.models import users, flags as flags_, leads
+from api.db import engine
 from api.auth import login_required
-from pymysql.cursors import DictCursor
-from pymysql.err import IntegrityError
 
 flags = Blueprint('flags', __name__, url_prefix='/flag')
 
@@ -23,52 +24,41 @@ def list_flags(uid):
     if len(ids) == 0:
         return {'flags': []}
 
-    try:
-        con = make_connection()
-        with con.cursor(DictCursor) as cur:
-            cur.execute("""
-                select leads.id as id, not isnull(uflags.id) as flagged
-                from leads
-                left join (select id, lead_id from flags where user_id = %(uid)s) as uflags
-                    on uflags.lead_id = leads.id
-                where leads.id in %(ids)s; """, {
-                'uid': uid,
-                'ids': tuple(ids)
-            })
+    with engine().connect() as con:
+        uflags = select([flags_.c.id, flags_.c.lead_id])\
+            .where(flags_.c.user_id == uid).alias('uflags')
 
-            result = {row['id']: row['flagged'] for row in cur.fetchall()}
+        query = select([leads.c.id, text('isnull(uflags.id) as flagged')])\
+            .select_from(leads.outerjoin(uflags))\
+            .where(leads.c.id.in_(ids))
 
-            return {'flags': [result[id] if id in result else False for id in ids]}
-    finally:
-        release_connection(con)
+        res = con.execute(query)
+
+        result = {row['id']: row['flagged'] for row in res}
+
+        return {'flags': [result[id] if id in result else False for id in ids]}
 
 
 @flags.route('/<lead_id>', methods=('PUT',))
 @login_required
 def put_flag(uid, lead_id):
-    try:
-        con = make_connection()
-        with con.cursor() as cur:
-            count = cur.execute(
-                'insert into flags (lead_id, user_id) values (%s, %s) on duplicate key update id = id;', (lead_id, uid))
-            return {'status': 'ok', 'rows': count}
-    except IntegrityError:
-        # invalid lead_id
-        return flask.abort(404)
-    finally:
-        release_connection(con)
+    with engine().connect() as con:
+        query = flags_.insert().values(  # pylint: disable=no-value-for-parameter
+            lead_id=lead_id, user_id=uid)
+
+        try:
+            res = con.execute(query)
+            return {'status': 'ok', 'rows': res.rowcount}
+        except IntegrityError:
+            # invalid lead_id
+            return flask.abort(404)
 
 
 @flags.route('/<lead_id>', methods=('DELETE',))
 @login_required
 def delete_flag(uid, lead_id):
-    try:
-        con = make_connection()
-        with con.cursor() as cur:
-            print(uid, lead_id)
-            cur = con.cursor()
-            count = cur.execute(
-                'delete from flags where lead_id = %s and user_id = %s;', (lead_id, uid))
-            return {'status': 'ok', 'rows': count}
-    finally:
-        release_connection(con)
+    with engine().connect() as con:
+        query = flags_.delete().where(  # pylint: disable=no-value-for-parameter
+            and_(flags_.c.lead_id == lead_id, flags_.c.user_id == uid))
+        res = con.execute(query)
+        return {'status': 'ok', 'rows': res.rowcount}

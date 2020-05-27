@@ -4,99 +4,83 @@ import flask
 from flask import request, send_from_directory, send_file
 from flask_cors import CORS
 import configparser
+from sqlalchemy.sql import select, and_, text
 
 import pymysql.cursors
-from api.db import init_pool, connect
+from api.db import init_pool, engine
+from api.models import users, annotated_leads, leads, crowd_ratings, flags
 from api.auth import signup, parse_token, auth, login_used, login_required
-from api.flags import flags
+from api.flags import flags as flags_bp
 from api.alerts import alerts
 
 import json
 from os import environ
 
-# def create_app():
 app = flask.Flask(__name__)
 cfg = configparser.ConfigParser()
 cfg.read('keys.conf')
 app.secret_key = cfg.get('flask', 'session-key')
 CORS(app, supports_credentials='DEBUG' in environ)
 
-app.register_blueprint(flags)
+app.register_blueprint(flags_bp)
 app.register_blueprint(auth)
 app.register_blueprint(alerts)
 app.before_first_request(init_pool)
 
-LEAD_FIELDS = """
-al.lead_id as id, al.name, al.description, al.topic, 
-l.discovered_dt, l.query_term, l.link, l.domain, l.jurisdiction,
-l.source, l.people, l.organizations, l.document_ext, l.document_relevance
-"""
+LEAD_FIELDS = [
+    leads.c.id,
+    annotated_leads.c.name,
+    annotated_leads.c.description,
+    annotated_leads.c.topic,
+    leads.c.discovered_dt,
+    leads.c.query_term,
+    leads.c.link,
+    leads.c.domain,
+    leads.c.jurisdiction,
+    leads.c.source,
+    leads.c.people,
+    leads.c.organizations,
+    leads.c.document_ext,
+    leads.c.document_relevance
+]
 
 
-def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], is_published=True, flagged_only=False, paged=False):
+def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], flagged_only=False):
     if uid is not None:
-        fields += ', not isnull(uflags.id) as flagged'
+        fields = fields + [text('not isnull(uflags.id) as flagged')]
+        uflags = select([flags.c.id, flags.c.lead_id]).where(
+            flags.c.user_id == uid).alias('uflags')
+    else:
+        uflags = None
+
+    query = select(fields)
+
+    if uflags is not None:
+        join = leads.join(annotated_leads)
         if flagged_only:
-            join_type = "inner"
+            join = join.join(uflags)
         else:
-            join_type = "left"
-        flag_join = f"""{join_type} join (
-                select flags.id, lead_id 
-                from flags
-                where flags.user_id = %(uid)s
-            ) uflags on uflags.lead_id = l.id"""
-    else:
-        flag_join = ""
+            join = join.outerjoin(uflags)
+        query = query.select_from(join)
 
-    if paged:
-        limit = "limit %(page_start)s, %(page_size)s"
-    else:
-        limit = ""
-
-    PUB_WHERE = 'al.is_published = 1'
-    if is_published:
-        if isinstance(where, list):
-            where = ' and '.join(where + [PUB_WHERE])
-        elif isinstance(where, str):
-            where = where + ' and ' + PUB_WHERE
-
-    template = f"""
-        select {fields}
-        from annotated_leads al
-        join leads l on l.id = al.lead_id
-        {flag_join}
-        where {where}
-        order by l.id asc
-        {limit};"""
-
-    return template
-
-
-def load_ratings(cur, ids):
-    cur.execute('select * from crowd_ratings where lead_id in %s',
-                (tuple(ids),))
-    ratings = list(cur.fetchall())
-    return ratings
+    return query.where(and_(annotated_leads.c.is_published == True, *where)).order_by(leads.c.id)
 
 
 @app.route('/lead/<lead_id>')
 @login_used
 def get_lead(uid, lead_id):
-    with connect() as db, db.cursor(pymysql.cursors.DictCursor) as cur:
-        query = build_lead_selection(uid, where='lead_id = %(lead_id)s')
+    with engine().connect() as con:
+        query = build_lead_selection(uid, where=[leads.c.id == lead_id])
 
-        count = cur.execute(query, {
-            'lead_id': lead_id,
-            'uid': uid,
-        })
-
-        if count >= 1:
-            result = cur.fetchone()
+        resultset = con.execute(query)
+        if resultset.rowcount >= 1:
+            result = dict(resultset.fetchone().items())
 
             # now we load comments for it
-            ratings = load_ratings(cur, [lead_id])
-            cur.close()
-            result['ratings'] = ratings
+            ratings_query = select([crowd_ratings])\
+                .where(crowd_ratings.c.id == lead_id)
+            ratings = con.execute(ratings_query)
+            result['ratings'] = ratings.fetchall()
             return flask.jsonify(result)
         else:
             return flask.abort(404)
@@ -135,32 +119,23 @@ def filter_leads(uid, flagged=False):
 
     if filter_ is not None:
         where.append(
-            "match(al.name, al.description, al.topic) against (%(filter)s in natural language mode)")
+            text("match(name, description, topic) against (:filter in natural language mode)").bindparams(filter=filter_))
     if from_ is not None:
-        where.append("discovered_dt >= %(from)s")
+        where.append(leads.c.discovered_dt >= from_)
     if to is not None:
-        where.append("discovered_dt <= %(to)s")
+        where.append(leads.c.discovered_dt <= to)
     if source is not None:
-        where.append("jurisdiction = %(source)s")
+        where.append(leads.c.jurisdiction == source)
 
     query = build_lead_selection(
-        uid, where=where, paged=True, flagged_only=flagged)
+        uid, where=where, flagged_only=flagged)\
+        .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
 
-    with connect() as db, db.cursor(pymysql.cursors.DictCursor) as cur:
-        qparams = {
-            'filter': filter_,
-            'from': from_,
-            'to': to,
-            'source': source,
-            'page_start': (page - 1) * PAGE_SIZE,
-            'page_size': PAGE_SIZE,
-            'uid': uid
-        }
+    with engine().connect() as con:
 
-        print(cur.mogrify(query, qparams))
-        cur.execute(query, qparams)
+        result = con.execute(query)
 
-        results = list(cur.fetchall())
+        results = list(result.fetchall())
 
         if len(results) == 0:
             # no need to do more queries. return empty result
@@ -173,22 +148,25 @@ def filter_leads(uid, flagged=False):
 
         # count total results so we know the page count
         count_query = build_lead_selection(uid=uid,
-                                           fields='count(*) as num_results', where=where, flagged_only=flagged)
-        cur.execute(count_query, qparams)
+                                           fields=[text('count(*) as num_results')], where=where, flagged_only=flagged)
+        result = con.execute(count_query)
 
-        meta = cur.fetchone()
+        meta = dict(result.fetchone().items())
         print(meta)
 
         meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
         meta['page'] = page
 
-        ratings = load_ratings(cur, (res['id'] for res in results))
+        ratings_query = select([crowd_ratings]).where(
+            crowd_ratings.c.lead_id.in_((res['id'] for res in results)))
+        ratings = con.execute(ratings_query)
 
-        res_map = {res['id']: {'ratings': [], **res} for res in results}
+        res_map = {res['id']: {'ratings': [], **dict(res.items())}
+                   for res in results}
 
         for rating in ratings:
             lead = res_map[rating['lead_id']]
-            lead['ratings'].append(rating)
+            lead['ratings'].append(dict(rating.items()))
 
         result = {
             'leads': list(res_map.values()),

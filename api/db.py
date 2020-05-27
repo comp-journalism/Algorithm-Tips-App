@@ -1,8 +1,5 @@
 import configparser
-import pymysql
-from pymysqlpool.pool import Pool
-from pymysql.err import OperationalError, InterfaceError
-from contextlib import contextmanager
+from sqlalchemy import create_engine
 
 global_pool = None
 
@@ -22,36 +19,10 @@ def init_pool():
     aws_host = config.get("AWSDatabaseConfig", "host")
     aws_database = config.get("AWSDatabaseConfig", "database")
 
-    global_pool = Pool(user=aws_username, password=aws_password,
-                       host=aws_host, port=3306, db=aws_database, charset='utf8mb4', autocommit=True, ping_check=True)
+    global_pool = create_engine(
+        f'mysql+pymysql://{aws_username}:{aws_password}@{aws_host}/{aws_database}', echo=True)
 
 
-def make_connection():
-    return global_pool.get_conn()
-
-
-def release_connection(conn):
-    return global_pool.release(conn)
-
-
-def kill_connection(conn):
-    with global_pool.cond:
-        global_pool.current_size -= 1
-        global_pool.inuse_list.remove(conn)
-        conn.close()
-        global_pool.cond.notify_all()
-
-
-@contextmanager
-def connect():
-    con = make_connection()
-    try:
-        yield con
-    except (OperationalError, InterfaceError) as err:
-        # these errors indicate a dead or broken connection
-        print(err)
-        print('Killing connection')
-        kill_connection(con)
-    finally:
-        if con.open:
-            release_connection(con)
+def engine():
+    global global_pool
+    return global_pool

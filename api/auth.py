@@ -1,7 +1,9 @@
 from google.oauth2 import id_token
 from werkzeug.exceptions import BadRequest
 from google.auth.transport import requests
-from api.db import make_connection, release_connection
+from api.db import engine
+from api.models import users
+from sqlalchemy.sql import select, and_
 from flask import request, abort, Blueprint, session
 from pymysql.cursors import DictCursor
 from functools import wraps
@@ -34,28 +36,21 @@ def signup(token):
     if info is None:
         return None
 
-    con = make_connection()
-    try:
-        cur = con.cursor(DictCursor)
-
+    with engine().connect() as con:
         email = info['email'] if info['email_verified'] else None
 
-        cur.execute(
-            'insert into users (external_id, external_type, email) values (%s, %s, %s) on duplicate key update id = id;',
-            (info['sub'], 'GOOGLE', email))
+        query = select([users.c.id]).where(
+            and_(users.c.external_id == info['sub'], users.c.external_type == 'GOOGLE'))
 
-        # cannot use last_insert_id() because we may not actually insert anything
-        cur.execute(
-            'select id from users where external_id = %s and external_type = %s',
-            (info['sub'], 'GOOGLE')
-        )
+        res = con.execute(query)
 
-        result = cur.fetchone()
-
-        return result['id']
-    finally:
-        cur.close()
-        release_connection(con)
+        if res.rowcount >= 1:
+            row = res.fetchone()
+            return row[0]
+        else:
+            res = con.execute(users.insert().values(
+                external_id=info['sub'], external_type='GOOGLE', email=email))
+            return res.inserted_primary_key[0]
 
 
 def parse_token():

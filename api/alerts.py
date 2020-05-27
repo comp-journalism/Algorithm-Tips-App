@@ -1,9 +1,10 @@
 import re
 import flask
 from flask import Blueprint, request
-from api.db import connect
+from sqlalchemy.sql import select, and_, text
+from api.db import engine
+from api.models import alerts as alerts_, users
 from api.auth import login_required
-from pymysql.cursors import DictCursor
 
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 
@@ -11,17 +12,16 @@ alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 @alerts.route('/<alert_id>', methods=('GET',))
 @login_required
 def lookup_alert(uid, alert_id):
-    with connect() as con, con.cursor(DictCursor) as cur:
-        count = cur.execute(
-            """select alerts.id, filter, recipient, source, frequency, recipient = users.email as confirmed
-            from alerts
-            join users on user_id = user.id
-            where id = %s and user_id = %s""", (alert_id, uid))
-        if count == 0:
+    with engine().connect() as con:
+        query = select([alerts_, text('recipient = users.email as confirmed')])\
+            .select_from(alerts_.join(users))\
+            .where(and_(alerts_.c.id == alert_id, users.c.id == uid))
+        res = con.execute(query)
+        if res.rowcount == 0:
             # does not exist or no access
             return flask.abort(404)
 
-        return flask.jsonify(cur.fetchone())
+        return flask.jsonify(dict(res.fetchone().items()))
 
 
 @alerts.route('/<alert_id>', methods=('PUT',))
@@ -36,17 +36,17 @@ def update_alert(uid, alert_id):
             'reason': 'Unable to read or validate alert data'
         })
 
-    with connect() as con, con.cursor(DictCursor) as cur:
-        count = cur.execute("""
-            update alerts set
-                filter = %(filter)s,
-                recipient = %(recipient)s,
-                source = %(source)s,
-                frequency = %(frequency)s
-            where id = %(id)s and user_id = %(uid)s;
-        """, {**data, 'id': alert_id, 'uid': uid})
+    with engine().connect() as con:
+        query = alerts_.update().values(  # pylint: disable=no-value-for-parameter
+            filter=data['filter'],
+            recipient=data['recipient'],
+            source=data['source'],
+            frequency=data['frequency']
+        ).where(and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
 
-        if count == 0:
+        res = con.execute(query)
+
+        if res.rowcount == 0:
             return flask.abort(404)
 
         return {'status': 'ok'}
@@ -55,10 +55,11 @@ def update_alert(uid, alert_id):
 @alerts.route('/<alert_id>', methods=('DELETE',))
 @login_required
 def delete_alert(uid, alert_id):
-    with connect() as con, con.cursor(DictCursor) as cur:
-        count = cur.execute(
-            'delete from alerts where id = %s and user_id = %s', (alert_id, uid))
-        if count == 0:
+    with engine().connect() as con:
+        query = alerts_.delete().where(  # pylint: disable=no-value-for-parameter
+            and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
+        res = con.execute(query)
+        if res.rowcount == 0:
             return flask.abort(404)
 
         return {'status': 'ok'}
@@ -67,17 +68,16 @@ def delete_alert(uid, alert_id):
 @alerts.route('/list', methods=('GET',))
 @login_required
 def list_alerts(uid):
-    with connect() as con, con.cursor(DictCursor) as cur:
-        count = cur.execute(
-            """select alerts.id, filter, recipient, source, frequency, recipient = users.email as confirmed
-            from alerts
-            join users on user_id = users.id
-            where user_id = %s""", (uid,))
-        if count == 0:
+    with engine().connect() as con:
+        query = select([alerts_, text('recipient = users.email as confirmed')])\
+            .select_from(alerts_.join(users))\
+            .where(users.c.id == uid)
+        res = con.execute(query)
+        if res.rowcount == 0:
             return {'alerts': []}
 
-        results = cur.fetchall()
-        return {'alerts': results}
+        results = res.fetchall()
+        return {'alerts': [dict(r.items()) for r in results]}
 
 
 EMAIL_REGEX = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
@@ -95,20 +95,24 @@ def create_alert(uid):
             'reason': 'Unable to read or validate alert data'
         })
 
-    with connect() as con, con.cursor(DictCursor) as cur:
+    with engine().connect() as con:
         # we're going to abuse the DB to do validation & type checking. the only exception is the email, which is validated above
         try:
-            cur.execute("""
-                insert into alerts (filter, recipient, source, frequency, user_id) values (%(filter)s, %(recipient)s, %(source)s, %(frequency)s, %(uid)s);
-            """, {**data, 'uid': uid})
+            query = alerts_.insert().values(  # pylint: disable=no-value-for-parameter
+                filter=data['filter'],
+                recipient=data['recipient'],
+                source=data['source'],
+                frequency=data['frequency'],
+                user_id=uid
+            )
 
-            cur.execute("select last_insert_id() as id;")
+            res = con.execute(query)
 
-            result = cur.fetchone()
-            assert result['id'] > 0
+            assert len(res.inserted_primary_key) > 0
 
-            return {'id': result['id']}
-        except:
+            return {'id': res.inserted_primary_key[0]}
+        except Exception as e:
+            print(e)
             return flask.abort(400, {
                 'status': 'error',
                 'reason': 'Unable to create alert in database'
