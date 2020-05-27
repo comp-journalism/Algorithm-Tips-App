@@ -45,24 +45,20 @@ LEAD_FIELDS = [
 
 
 def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], flagged_only=False):
+    join = leads.join(annotated_leads)
     if uid is not None:
         fields = fields + [text('not isnull(uflags.id) as flagged')]
         uflags = select([flags.c.id, flags.c.lead_id]).where(
             flags.c.user_id == uid).alias('uflags')
-    else:
-        uflags = None
 
-    query = select(fields)
-
-    if uflags is not None:
-        join = leads.join(annotated_leads)
         if flagged_only:
             join = join.join(uflags)
         else:
             join = join.outerjoin(uflags)
-        query = query.select_from(join)
 
-    return query.where(and_(annotated_leads.c.is_published == True, *where)).order_by(leads.c.id)
+    query = select(fields).select_from(join)
+
+    return query.where(and_(annotated_leads.c.is_published == True, *where))
 
 
 @app.route('/lead/<lead_id>')
@@ -128,6 +124,7 @@ def filter_leads(uid, flagged=False):
 
     query = build_lead_selection(
         uid, where=where, flagged_only=flagged)\
+        .order_by(leads.c.id)\
         .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
 
     with engine().connect() as con:
@@ -135,6 +132,9 @@ def filter_leads(uid, flagged=False):
         result = con.execute(query)
 
         results = list(result.fetchall())
+
+        res_map = {res['id']: {'ratings': [], **dict(res.items())}
+                   for res in results}
 
         if len(results) == 0:
             # no need to do more queries. return empty result
@@ -151,17 +151,13 @@ def filter_leads(uid, flagged=False):
         result = con.execute(count_query)
 
         meta = dict(result.fetchone().items())
-        print(meta)
 
         meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
         meta['page'] = page
 
         ratings_query = select([crowd_ratings]).where(
-            crowd_ratings.c.lead_id.in_((res['id'] for res in results)))
+            crowd_ratings.c.lead_id.in_(tuple(res_map.keys())))
         ratings = con.execute(ratings_query)
-
-        res_map = {res['id']: {'ratings': [], **dict(res.items())}
-                   for res in results}
 
         for rating in ratings:
             lead = res_map[rating['lead_id']]

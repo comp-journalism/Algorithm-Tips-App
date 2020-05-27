@@ -161,8 +161,8 @@ export default {
       )}%22+site%3A.gov+-site%3A.nih.gov&as_qdr=w1&lr=en&num=100`;
     },
     people_orgs() {
-      const people = JSON.parse(this.lead.people);
-      const orgs = JSON.parse(this.lead.organizations);
+      const people = JSON.parse(this.lead.people) || {};
+      const orgs = JSON.parse(this.lead.organizations) || {};
 
       const merged = Object.entries(people).concat(Object.entries(orgs));
       const max_count = Math.max(...merged.map(([, count]) => count));
