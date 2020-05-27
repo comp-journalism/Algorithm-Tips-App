@@ -6,7 +6,6 @@ from flask_cors import CORS
 import configparser
 from sqlalchemy.sql import select, and_, text
 
-import pymysql.cursors
 from api.db import init_pool, engine
 from api.models import users, annotated_leads, leads, crowd_ratings, flags
 from api.auth import signup, parse_token, auth, login_used, login_required

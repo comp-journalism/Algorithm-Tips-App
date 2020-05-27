@@ -5,7 +5,6 @@ from api.db import engine
 from api.models import users
 from sqlalchemy.sql import select, and_
 from flask import request, abort, Blueprint, session
-from pymysql.cursors import DictCursor
 from functools import wraps
 
 # TODO: move to credentials file. same with frontend

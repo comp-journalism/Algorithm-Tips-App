@@ -28,7 +28,7 @@ def list_flags(uid):
         uflags = select([flags_.c.id, flags_.c.lead_id])\
             .where(flags_.c.user_id == uid).alias('uflags')
 
-        query = select([leads.c.id, text('isnull(uflags.id) as flagged')])\
+        query = select([leads.c.id, text('not isnull(uflags.id) as flagged')])\
             .select_from(leads.outerjoin(uflags))\
             .where(leads.c.id.in_(ids))
 
