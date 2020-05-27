@@ -62,3 +62,16 @@ crowd_ratings = Table('crowd_ratings', meta,
                       Column('magnitude_explanation', String),
                       Column('societal_impact_explanation')
                       )
+
+confirmed_emails = Table('confirmed_emails', meta,
+                         Column('id', Integer, primary_key=True),
+                         Column('user_id', None, ForeignKey('users.id')),
+                         Column('email', String, nullable=False),
+                         )
+
+pending_confirmations = Table('pending_confirmations', meta,
+                              Column('id', Integer, primary_key=True),
+                              Column('user_id', None, ForeignKey('users.id')),
+                              Column('email', String, nullable=False),
+                              Column('send_date', DateTime, nullable=False)
+                              )

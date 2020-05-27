@@ -7,6 +7,7 @@ import configparser
 from sqlalchemy.sql import select, and_, text
 
 from api.db import init_pool, engine
+from api.mail import init_mail
 from api.models import users, annotated_leads, leads, crowd_ratings, flags
 from api.auth import signup, parse_token, auth, login_used, login_required
 from api.flags import flags as flags_bp
@@ -20,6 +21,8 @@ cfg = configparser.ConfigParser()
 cfg.read('keys.conf')
 app.secret_key = cfg.get('flask', 'session-key')
 CORS(app, supports_credentials='DEBUG' in environ)
+
+init_mail(app)
 
 app.register_blueprint(flags_bp)
 app.register_blueprint(auth)

@@ -2,9 +2,10 @@ from google.oauth2 import id_token
 from werkzeug.exceptions import BadRequest
 from google.auth.transport import requests
 from api.db import engine
-from api.models import users
+from api.models import users, pending_confirmations, confirmed_emails
 from sqlalchemy.sql import select, and_
-from flask import request, abort, Blueprint, session
+from flask import request, abort, Blueprint, session, current_app
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 from functools import wraps
 
 # TODO: move to credentials file. same with frontend
@@ -105,3 +106,33 @@ def signin():
 def signout():
     session.pop('id', None)
     return {'status': 'ok'}
+
+
+@auth.route('/confirm')
+def confirm_email():
+    token = request.args.get('token')
+    serializer = URLSafeTimedSerializer(current_app.secret_key)
+    try:
+        # tokens only work for 24hr
+        confirmation_id = serializer.loads(
+            token, max_age=24 * 60 * 60, salt='confirm')
+        with engine().connect() as con:
+            res = con.execute(select([pending_confirmations]).where(
+                pending_confirmations.c.id == confirmation_id))
+
+            if res.rowcount == 0:
+                return abort(400)
+
+            confirmation = res.fetchone()
+
+            res = con.execute(confirmed_emails.insert().values(  # pylint: disable=no-value-for-parameter
+                user_id=confirmation['user_id'],
+                email=confirmation['email']
+            ))
+
+        return {
+            'status': 'ok'
+        }
+    except BadSignature as e:
+        print(e)
+        return abort(400)

@@ -1,10 +1,13 @@
 import re
 import flask
+from datetime import datetime, timedelta
+from flask_mail import Message
 from flask import Blueprint, request
-from sqlalchemy.sql import select, and_, text
+from sqlalchemy.sql import select, and_, text, not_
 from api.db import engine
-from api.models import alerts as alerts_, users
+from api.models import alerts as alerts_, users, pending_confirmations, confirmed_emails
 from api.auth import login_required
+from api.mail import send_confirmation
 
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 
@@ -48,6 +51,8 @@ def update_alert(uid, alert_id):
 
         if res.rowcount == 0:
             return flask.abort(404)
+
+        send_confirmation(uid, data['recipient'], con)
 
         return {'status': 'ok'}
 
@@ -96,6 +101,27 @@ def create_alert(uid):
         })
 
     with engine().connect() as con:
+        # before beginning, check if this email belongs to another existing users
+        query = select([users]).where(
+            and_(users.c.email == data['recipient'], not_(users.c.id == uid)))
+        res = con.execute(query)
+
+        if res.rowcount > 0:
+            return flask.abort(400, {
+                'status': 'error',
+                'reason': 'Email address is already claimed by another users.'
+            })
+
+        query = select([confirmed_emails]).where(and_(
+            confirmed_emails.c.email == data['recipient'], not_(confirmed_emails.c.user_id == uid)))
+        res = con.execute(query)
+
+        if res.rowcount > 0:
+            return flask.abort(400, {
+                'status': 'error',
+                'reason': 'Email address is already claimed by another users.'
+            })
+
         # we're going to abuse the DB to do validation & type checking. the only exception is the email, which is validated above
         try:
             query = alerts_.insert().values(  # pylint: disable=no-value-for-parameter
@@ -110,10 +136,14 @@ def create_alert(uid):
 
             assert len(res.inserted_primary_key) > 0
 
-            return {'id': res.inserted_primary_key[0]}
+            alert_id = res.inserted_primary_key[0]
         except Exception as e:
             print(e)
             return flask.abort(400, {
                 'status': 'error',
                 'reason': 'Unable to create alert in database'
             })
+
+        send_confirmation(uid, data['recipient'], con)
+
+        return {'id': alert_id}
