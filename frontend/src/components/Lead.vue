@@ -164,15 +164,12 @@ export default {
       const people = JSON.parse(this.lead.people);
       const orgs = JSON.parse(this.lead.organizations);
 
-      const filtration = ([, count]) => count >= 10;
-      const merged = Object.entries(people)
-        .concat(Object.entries(orgs))
-        .filter(filtration);
-      merged.sort(([, a], [, b]) => b - a);
+      const merged = Object.entries(people).concat(Object.entries(orgs));
+      const max_count = Math.max(...merged.map(([, count]) => count));
+      const filtered = merged.filter(([, count]) => count > max_count / 2);
+      filtered.sort(([, a], [, b]) => b - a);
 
-      // const merged = people_fil.concat(orgs_fil);
-      // merged.sort(([, a], [, b]) => a - b);
-      return merged.map(([name]) => name);
+      return filtered.map(([name]) => name);
     },
     discovered() {
       const dt = moment(this.lead.discovered_dt);
