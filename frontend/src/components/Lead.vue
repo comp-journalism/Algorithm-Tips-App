@@ -1,6 +1,6 @@
 <template>
   <div class="lead-box">
-    <b-card no-body>
+    <b-card no-body :header-bg-variant="lead.flagged ? 'warning' : 'default'">
       <template v-slot:header>
         <div class="d-flex justify-content-between align-items-center">
           <router-link :to="page_url" v-if="headerLink" class="header-link">
