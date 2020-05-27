@@ -12,19 +12,37 @@ from api.mail import send_confirmation
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 
 
+def is_confirmed(uid, emails, con):
+    """Checks if an email or emails has been confirmed."""
+    if isinstance(emails, list):
+        res = con.execute(select([confirmed_emails]).where(
+            and_(confirmed_emails.c.user_id == uid, confirmed_emails.c.email.in_(emails))))
+        confirmed = {email: False for email in emails}
+        for row in res:
+            confirmed[row['email']] = True
+
+        return confirmed
+    else:
+        res = con.execute(select([confirmed_emails]).where(
+            and_(confirmed_emails.c.user_id == uid, confirmed_emails.c.email == emails)))
+
+        return res.rowcount >= 1
+
+
 @alerts.route('/<alert_id>', methods=('GET',))
 @login_required
 def lookup_alert(uid, alert_id):
     with engine().connect() as con:
-        query = select([alerts_, text('recipient = users.email as confirmed')])\
-            .select_from(alerts_.join(users))\
-            .where(and_(alerts_.c.id == alert_id, users.c.id == uid))
+        query = select([alerts_])\
+            .where(and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
         res = con.execute(query)
         if res.rowcount == 0:
             # does not exist or no access
             return flask.abort(404)
 
-        return flask.jsonify(dict(res.fetchone().items()))
+        response = dict(res.fetchone().items())
+        response['confirmed'] = is_confirmed(uid, response['recipient'], con)
+        return flask.jsonify(response)
 
 
 @alerts.route('/<alert_id>', methods=('PUT',))
@@ -74,15 +92,21 @@ def delete_alert(uid, alert_id):
 @login_required
 def list_alerts(uid):
     with engine().connect() as con:
-        query = select([alerts_, text('recipient = users.email as confirmed')])\
-            .select_from(alerts_.join(users))\
-            .where(users.c.id == uid)
+        query = select([alerts_])\
+            .where(alerts_.c.user_id == uid)
         res = con.execute(query)
         if res.rowcount == 0:
             return {'alerts': []}
 
         results = res.fetchall()
-        return {'alerts': [dict(r.items()) for r in results]}
+        alert_list = [dict(r.items()) for r in results]
+
+        confirmed = is_confirmed(uid, [alert['recipient']
+                                       for alert in alert_list], con)
+
+        for alert in alert_list:
+            alert['confirmed'] = confirmed[alert['recipient']]
+        return {'alerts': alert_list}
 
 
 EMAIL_REGEX = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")

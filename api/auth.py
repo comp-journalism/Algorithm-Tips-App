@@ -48,9 +48,14 @@ def signup(token):
             row = res.fetchone()
             return row[0]
         else:
-            res = con.execute(users.insert().values(
-                external_id=info['sub'], external_type='GOOGLE', email=email))
-            return res.inserted_primary_key[0]
+            res = con.execute(users.insert().values(  # pylint: disable=no-value-for-parameter
+                external_id=info['sub'], external_type='GOOGLE'))
+
+            uid = res.inserted_primary_key[0]
+            if email is not None:
+                con.execute(confirmed_emails.insert().values(  # pylint: disable=no-value-for-parameter
+                    user_id=uid, email=email))
+            return uid
 
 
 def parse_token():
