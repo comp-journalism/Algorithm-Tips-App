@@ -28,8 +28,8 @@ exports[`Lead matches the snapshot 1`] = `
         <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Potential for Controversy">
           <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
           <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Potential for Controversy</span>
-          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
-            <b-progress-bar-stub value="2.6"></b-progress-bar-stub>
+          <b-progress-stub variant="info" precision="0" max="4" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="1.6"></b-progress-bar-stub>
           </b-progress-stub> <span class="score-display float-right">2.6 / 5</span>
         </div>
         <b-collapse-stub id="1420Potential for Controversy" tag="div">
@@ -40,8 +40,8 @@ exports[`Lead matches the snapshot 1`] = `
         <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Size of Impact">
           <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
           <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Size of Impact</span>
-          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
-            <b-progress-bar-stub value="4.6"></b-progress-bar-stub>
+          <b-progress-stub variant="info" precision="0" max="4" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="3.5999999999999996"></b-progress-bar-stub>
           </b-progress-stub> <span class="score-display float-right">4.6 / 5</span>
         </div>
         <b-collapse-stub id="1420Size of Impact" tag="div">
@@ -52,8 +52,8 @@ exports[`Lead matches the snapshot 1`] = `
         <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Negative Societal Impact">
           <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
           <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Negative Societal Impact</span>
-          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
-            <b-progress-bar-stub value="2.8"></b-progress-bar-stub>
+          <b-progress-stub variant="info" precision="0" max="4" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="1.7999999999999998"></b-progress-bar-stub>
           </b-progress-stub> <span class="score-display float-right">2.8 / 5</span>
         </div>
         <b-collapse-stub id="1420Negative Societal Impact" tag="div">
@@ -64,8 +64,8 @@ exports[`Lead matches the snapshot 1`] = `
         <div role="button" tabindex="0" class="collapsed" aria-expanded="false" aria-controls="1420Surprising">
           <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
           <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span class="rating-title">Surprising</span>
-          <b-progress-stub variant="info" precision="0" max="5" value="0" class="w-25 float-right inline-bar">
-            <b-progress-bar-stub value="1.8"></b-progress-bar-stub>
+          <b-progress-stub variant="info" precision="0" max="4" value="0" class="w-25 float-right inline-bar">
+            <b-progress-bar-stub value="0.8"></b-progress-bar-stub>
           </b-progress-stub> <span class="score-display float-right">1.8 / 5</span>
         </div>
         <b-collapse-stub id="1420Surprising" tag="div">

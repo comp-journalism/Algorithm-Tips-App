@@ -46,8 +46,8 @@
             <b-icon-chevron-right class="when-closed" />
             <b-icon-chevron-down class="when-open" />
             <span class="rating-title">{{ rating.title }}</span>
-            <b-progress :max="5" class="w-25 float-right inline-bar" variant="info">
-              <b-progress-bar :value="rating.score"></b-progress-bar>
+            <b-progress :max="4" class="w-25 float-right inline-bar" variant="info">
+              <b-progress-bar :value="rating.score - 1"></b-progress-bar>
             </b-progress>
             <span class="score-display float-right">{{ rating.score.toFixed(1) }} / 5</span>
           </div>
