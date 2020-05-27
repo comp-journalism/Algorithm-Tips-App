@@ -34,7 +34,12 @@
           <dt class="col-sm-4">Main Topics</dt>
           <dd class="col-sm-8">{{ lead.topic }}</dd>
           <dt class="col-sm-4">People &amp; Organizations</dt>
-          <dd class="col-sm-8">{{ people_orgs.join(", ") }}</dd>
+          <dd class="col-sm-8">
+            <template v-if="people_orgs.length > 0">{{ people_orgs.join(", ") }}</template>
+            <template v-else>
+              <em class="text-muted">None found</em>
+            </template>
+          </dd>
         </dl>
 
         <h5 v-if="ratings_split.length">Crowd Ratings</h5>
@@ -60,7 +65,7 @@
               :items="rating.comments"
             ></b-table-lite>
             <span v-else>
-              <em>No rating information available.</em>
+              <em class="text-muted">No rating information available.</em>
             </span>
           </b-collapse>
         </b-list-group-item>
@@ -166,7 +171,9 @@ export default {
 
       const merged = Object.entries(people).concat(Object.entries(orgs));
       const max_count = Math.max(...merged.map(([, count]) => count));
-      const filtered = merged.filter(([, count]) => count > max_count / 2);
+      const filtered = merged.filter(
+        ([, count]) => count > 1 && count > max_count / 2
+      );
       filtered.sort(([, a], [, b]) => b - a);
 
       return filtered.map(([name]) => name);
