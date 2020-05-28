@@ -37,7 +37,7 @@
           </b-collapse>
 
           <b-button-group id="submit-group" class="float-right">
-            <b-button to="/db">Reset</b-button>
+            <b-button :to="$route.path">Reset</b-button>
             <b-button id="submit-search" type="submit" :to="search_path" variant="primary">Search</b-button>
           </b-button-group>
         </b-form>

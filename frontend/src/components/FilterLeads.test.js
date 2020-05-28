@@ -63,6 +63,7 @@ describe('FilterLeads', () => {
     }));
 
     it('should call filter on mount with the query param values', async () => {
+        router.push('/db');
         const query = {
             filter: 'test',
             from: '2020-1-20',
