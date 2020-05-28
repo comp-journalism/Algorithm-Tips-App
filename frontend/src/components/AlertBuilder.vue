@@ -9,8 +9,12 @@
       </div>
       <div class="row">
         <b-form @submit.prevent="submit" class="w-100">
-          <b-form-group label="Relevant Key Terms:" for="filter">
-            <b-form-input id="filter" v-model="form.filter" placeholder="<input key terms>"></b-form-input>
+          <b-form-group label="Keyword Filter:" for="filter">
+            <b-form-input
+              id="filter"
+              v-model="form.filter"
+              placeholder="<input keyword filter terms>"
+            ></b-form-input>
           </b-form-group>
           <b-form-group label="Source Filter:" for="source">
             <b-form-select id="source" v-model="form.source" :options="sources"></b-form-select>
