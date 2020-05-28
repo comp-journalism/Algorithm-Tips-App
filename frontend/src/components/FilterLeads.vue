@@ -55,7 +55,14 @@
         infinite-scroll-distance="10"
         class="row justify-content-center"
       >
-        <Lead :key="id" v-for="id in lead_ids" :id="id" header-link />
+        <Lead
+          :key="id"
+          v-for="id in lead_ids"
+          :id="id"
+          header-link
+          :confirm-remove="flagged"
+          @remove-flag="leadFlagRemoved"
+        />
       </div>
       <div id="spinner-container" class="row justify-content-center" v-if="loading">
         <b-spinner />
@@ -142,6 +149,11 @@ export default {
     updateForm() {
       Vue.set(this, "form", this.initForm(this.query));
       Vue.set(this, "sources", this.initSource(this.query));
+    },
+    leadFlagRemoved(id) {
+      if (this.flagged) {
+        this.lead_ids = this.lead_ids.filter(lid => lid !== id);
+      }
     },
     submitSearch() {
       if (isEqual(this.clean_filter(), this.query)) {

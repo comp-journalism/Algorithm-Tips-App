@@ -71,15 +71,26 @@
         </b-list-group-item>
       </b-list-group>
     </b-card>
+    <b-modal
+      id="flag-remove-dialog"
+      v-if="confirmRemove"
+      ref="delete-modal"
+      centered
+      title="Are you sure?"
+      ok-title="Remove Flag"
+      ok-variant="danger"
+      @hidden="cancelRemove"
+      @ok="commitRemove"
+      :visible="pendingDeletion"
+    >
+      <p>Removing this flag will immediately remove it from this page. Are you sure?</p>
+    </b-modal>
   </div>
 </template>
 
 <script>
 import moment from "moment";
-import axios from "axios";
-import { mapGetters, mapMutations } from "vuex";
-import { SET_FLAG } from "../store/leads";
-import { api_url } from "../api";
+import { mapGetters, mapActions } from "vuex";
 import externalLink from "./external-link.vue";
 
 export default {
@@ -87,15 +98,16 @@ export default {
   components: {
     "external-link": externalLink
   },
-  props: { id: Number, headerLink: Boolean },
+  props: { id: Number, headerLink: Boolean, confirmRemove: Boolean },
   data: () => {
     return {
-      flagPending: false
+      flagPending: false,
+      pendingDeletion: false
     };
   },
   methods: {
-    ...mapMutations({
-      updateFlag: `leads/${SET_FLAG}`
+    ...mapActions({
+      updateFlag: `leads/updateFlag`
     }),
     redirect_login() {
       this.$router.push({
@@ -113,32 +125,35 @@ export default {
 
       try {
         this.flagPending = true;
-        await axios.put(
-          api_url(`flag/${this.id}`),
-          {},
-          { withCredentials: true }
-        );
-
-        this.updateFlag({ id: this.id, flag: true });
+        await this.updateFlag({ id: this.id, flag: true });
       } catch (err) {
         console.error("Unable to set flag", err);
       } finally {
         this.flagPending = false;
       }
     },
-    async unsetFlag() {
+    unsetFlag() {
       if (!this.signedIn) {
         this.redirect_login();
         return;
       }
 
+      if (this.confirmRemove) {
+        this.pendingDeletion = true;
+      } else {
+        this.commitRemove();
+      }
+    },
+    cancelRemove() {
+      this.pendingDeletion = false;
+    },
+    async commitRemove() {
+      this.pendingDeletion = false;
       try {
         this.flagPending = true;
-        await axios.delete(api_url(`flag/${this.id}`), {
-          withCredentials: true
-        });
+        await this.updateFlag({ id: this.id, flag: false });
 
-        this.updateFlag({ id: this.id, flag: false });
+        this.$emit("remove-flag", this.id);
       } catch (err) {
         console.error("Unable to unset flag", err);
       } finally {

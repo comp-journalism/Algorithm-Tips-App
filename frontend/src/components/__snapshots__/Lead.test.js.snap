@@ -74,5 +74,6 @@ exports[`Lead matches the snapshot 1`] = `
       </b-list-group-item-stub>
     </b-list-group-stub>
   </b-card-stub>
+  <!---->
 </div>
 `;

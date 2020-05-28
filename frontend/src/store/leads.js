@@ -84,6 +84,22 @@ export default {
                 throw error;
             }
         },
+        async updateFlag({ commit }, { id, flag }) {
+            console.log(id, flag);
+            if (flag) {
+                await axios.put(
+                    api_url(`flag/${id}`),
+                    {},
+                    { withCredentials: true }
+                );
+            } else {
+                await axios.delete(api_url(`flag/${id}`), {
+                    withCredentials: true
+                });
+            }
+
+            commit(SET_FLAG, { id, flag: flag });
+        },
         async updateAllFlags({ commit, state }) {
             const ids = Object.keys(state.leads).map(Number);
 
