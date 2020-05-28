@@ -13,7 +13,7 @@
       </b-navbar-nav>
     </b-navbar>
     <div id="main" class="container position-relative">
-      <router-view :key="$route.fullPath"></router-view>
+      <router-view></router-view>
     </div>
   </div>
 </template>

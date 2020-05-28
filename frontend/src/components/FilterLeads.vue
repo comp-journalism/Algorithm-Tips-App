@@ -70,11 +70,13 @@
 </template>
 
 <script>
+import Vue from "vue";
 import Lead from "./Lead.vue";
 import { mapActions, mapGetters } from "vuex";
 import infiniteScroll from "vue-infinite-scroll";
 import EventBus from "../event-bus";
 import LoginRequired from "./LoginRequired";
+import isEqual from "lodash.isequal";
 
 import { source_options } from "../constants";
 
@@ -84,7 +86,6 @@ export default {
     infiniteScroll
   },
   props: {
-    query: Object,
     flagged: Boolean
   },
   components: {
@@ -92,7 +93,7 @@ export default {
     Lead
   },
   data() {
-    const query = this.query || {};
+    const query = this.$route.query;
     return {
       error: null,
       loading: true,
@@ -134,16 +135,22 @@ export default {
           this.error = err;
         });
     },
-    clearForm() {
-      this.form = {
-        filter: undefined,
-        from: undefined,
-        to: undefined,
-        source: null
-      };
+    updateForm() {
+      for (let key of Object.keys(this.form)) {
+        this.form[key] = this.query[key] || null;
+      }
     },
     submitSearch() {
-      this.$router.push(this.search_path);
+      if (isEqual(this.clean_filter(), this.query)) {
+        return;
+      }
+      this.$router.push(
+        this.search_path,
+        () => {},
+        err => {
+          console.error(err);
+        }
+      );
     },
     clean_filter() {
       return Object.fromEntries(
@@ -155,6 +162,12 @@ export default {
         path: "/login",
         query: { redirect: this.$route.fullPath }
       });
+    },
+    newSearch() {
+      Vue.set(this, "lead_ids", []);
+      this.page = 0;
+      this.page_count = 1;
+      this.loadMore();
     }
   },
   computed: {
@@ -164,6 +177,9 @@ export default {
       getLead: "leads/find",
       signedIn: "user/signedIn"
     }),
+    query() {
+      return this.$route.query;
+    },
     no_results() {
       return !this.loading && this.lead_ids.length === 0;
     },
@@ -185,13 +201,19 @@ export default {
   },
   async mounted() {
     if (this.flagged && !this.signedIn) {
-      EventBus.$on("login", this.loadMore);
+      EventBus.$on("login", this.newSearch);
     } else {
-      this.loadMore();
+      this.newSearch();
     }
   },
   beforeDestroy() {
-    EventBus.$off("login", this.loadMore);
+    EventBus.$off("login", this.newSearch);
+  },
+  watch: {
+    query() {
+      this.updateForm();
+      this.newSearch();
+    }
   }
 };
 </script>
