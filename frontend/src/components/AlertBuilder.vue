@@ -17,7 +17,7 @@
             ></b-form-input>
           </b-form-group>
           <b-form-group label="Source Filter:" for="source">
-            <b-form-select id="source" v-model="form.source" :options="sources"></b-form-select>
+            <source-selector v-model="form.sources" />
           </b-form-group>
           <b-form-group label="How Often:" for="frequency">
             <b-form-select id="frequency" v-model="form.frequency" :options="freqs"></b-form-select>
@@ -52,19 +52,20 @@
 <script>
 import Vue from "vue";
 import LoginRequired from "./LoginRequired";
+import SourceSelector from "./SourceSelector";
 import Lead from "./Lead";
 import { frequency_options } from "../constants";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
   name: "AlertBuilder",
-  components: { LoginRequired, Lead },
+  components: { LoginRequired, Lead, SourceSelector },
   props: ["id"],
   data() {
     return {
       form: {
         filter: "",
-        source: null,
+        sources: {},
         frequency: 0,
         recipient: ""
       },
@@ -76,9 +77,6 @@ export default {
     ...mapGetters("user", ["email"]),
     ...mapGetters("alerts", ["find"]),
     ...mapGetters("leads", { getFilter: "filter-get" }),
-    sources() {
-      return [];
-    },
     freqs() {
       return frequency_options;
     },
@@ -105,12 +103,11 @@ export default {
     ...mapActions("alerts", ["update", "create", "load"]),
     ...mapActions("leads", ["filter"]),
     async testFilter() {
-      const query = {};
+      const query = {
+        ...this.form.sources
+      };
       if (this.form.filter) {
         query.filter = this.form.filter;
-      }
-      if (this.form.source) {
-        query.source = this.form.source;
       }
 
       this.loading = true;

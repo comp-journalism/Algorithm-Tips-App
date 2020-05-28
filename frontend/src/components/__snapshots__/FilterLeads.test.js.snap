@@ -18,20 +18,7 @@ exports[`FilterLeads should call filter on mount with the query param values 1`]
             <b-form-datepicker-stub id="to-date" startweekday="0" buttonvariant="secondary" calendarwidth="270px" selectedvariant="primary" labeltodaybutton="Select today" todaybuttonvariant="outline-primary" labelresetbutton="Reset" resetbuttonvariant="outline-danger" labelclosebutton="Close" closebuttonvariant="outline-secondary" labelprevdecade="Previous decade" labelprevyear="Previous year" labelprevmonth="Previous month" labelcurrentmonth="Current month" labelnextmonth="Next month" labelnextyear="Next year" labelnextdecade="Next decade" labeltoday="Today" labelselected="Selected date" labelnodateselected="No date selected" labelcalendar="Calendar" labelnav="Calendar navigation" labelhelp="Use cursor keys to navigate calendar dates" dateformatoptions="[object Object]" weekdayheaderformat="short" offset="0" boundary="scrollParent"></b-form-datepicker-stub>
           </b-form-group-stub>
           <b-form-group-stub label="Included Sources:" labelcolssm="3" labelalign="right" feedbackarialive="assertive">
-            <div class="row ml-1">
-              <div class="col-sm-4">
-                <b-form-checkbox-stub value="true" checked="true">Federal</b-form-checkbox-stub>
-                <b-form-select-stub options="[object Object],Federal Agency - Executive,Federal Agency - Judicial,Federal Agency - Legislative" valuefield="value" textfield="text" htmlfield="html" disabledfield="disabled" labelfield="label" optionsfield="options" selectsize="0"></b-form-select-stub>
-              </div>
-              <div class="col-sm-4">
-                <b-form-checkbox-stub value="true" checked="true">State / Regional</b-form-checkbox-stub>
-                <b-form-select-stub options="[object Object],State/Local Govt,Interstate Agency,Native Sovereign Nation" valuefield="value" textfield="text" htmlfield="html" disabledfield="disabled" labelfield="label" optionsfield="options" selectsize="0"></b-form-select-stub>
-              </div>
-              <div class="col-sm-4">
-                <b-form-checkbox-stub value="true" checked="true">Local</b-form-checkbox-stub>
-                <b-form-select-stub options="[object Object],City,County" valuefield="value" textfield="text" htmlfield="html" disabledfield="disabled" labelfield="label" optionsfield="options" selectsize="0"></b-form-select-stub>
-              </div>
-            </div>
+            <source-selector-stub sources="[object Object]"></source-selector-stub>
           </b-form-group-stub>
         </b-collapse-stub>
         <b-button-group-stub tag="div" ariarole="group" id="submit-group" class="float-right">

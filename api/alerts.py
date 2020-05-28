@@ -9,6 +9,17 @@ from api.auth import login_required
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 
 
+def format_alert(row):
+    return {
+        'sources': {
+            'federal': row['federal_source'],
+            'regional': row['regional_source'],
+            'local': row['local_source']
+        },
+        **{k: v for k, v in row.items() if not k.endswith('_source')}
+    }
+
+
 @alerts.route('/<alert_id>', methods=('GET',))
 @login_required
 def lookup_alert(uid, alert_id):
@@ -21,7 +32,7 @@ def lookup_alert(uid, alert_id):
             # does not exist or no access
             return flask.abort(404)
 
-        return flask.jsonify(dict(res.fetchone().items()))
+        return flask.jsonify(format_alert(res.fetchone()))
 
 
 @alerts.route('/<alert_id>', methods=('PUT',))
@@ -40,7 +51,9 @@ def update_alert(uid, alert_id):
         query = alerts_.update().values(  # pylint: disable=no-value-for-parameter
             filter=data['filter'],
             recipient=data['recipient'],
-            source=data['source'],
+            federal_source=data['sources'].get('federal', None),
+            regional_source=data['sources'].get('regional', None),
+            local_source=data['sources'].get('local', None),
             frequency=data['frequency']
         ).where(and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
 
@@ -77,7 +90,7 @@ def list_alerts(uid):
             return {'alerts': []}
 
         results = res.fetchall()
-        return {'alerts': [dict(r.items()) for r in results]}
+        return {'alerts': [format_alert(r) for r in results]}
 
 
 EMAIL_REGEX = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
@@ -101,7 +114,9 @@ def create_alert(uid):
             query = alerts_.insert().values(  # pylint: disable=no-value-for-parameter
                 filter=data['filter'],
                 recipient=data['recipient'],
-                source=data['source'],
+                federal_source=data['sources'].get('federal', None),
+                regional_source=data['sources'].get('regional', None),
+                local_source=data['sources'].get('local', None),
                 frequency=data['frequency'],
                 user_id=uid
             )

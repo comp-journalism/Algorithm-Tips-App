@@ -27,32 +27,7 @@
               <b-form-datepicker id="to-date" v-model="form.to" />
             </b-form-group>
             <b-form-group label="Included Sources:" label-cols-sm="3" label-align="right">
-              <div class="row ml-1">
-                <div class="col-sm-4">
-                  <b-form-checkbox v-model="form.federal.check">Federal</b-form-checkbox>
-                  <b-form-select
-                    :disabled="!form.federal.check"
-                    v-model="form.federal.select"
-                    :options="federal_options"
-                  ></b-form-select>
-                </div>
-                <div class="col-sm-4">
-                  <b-form-checkbox v-model="form.regional.check">State / Regional</b-form-checkbox>
-                  <b-form-select
-                    :disabled="!form.regional.check"
-                    v-model="form.regional.select"
-                    :options="regional_options"
-                  ></b-form-select>
-                </div>
-                <div class="col-sm-4">
-                  <b-form-checkbox v-model="form.local.check">Local</b-form-checkbox>
-                  <b-form-select
-                    :disabled="!form.local.check"
-                    v-model="form.local.select"
-                    :options="local_options"
-                  ></b-form-select>
-                </div>
-              </div>
+              <source-selector v-model="sources" />
             </b-form-group>
           </b-collapse>
 
@@ -96,9 +71,8 @@ import { mapActions, mapGetters } from "vuex";
 import infiniteScroll from "vue-infinite-scroll";
 import EventBus from "../event-bus";
 import LoginRequired from "./LoginRequired";
+import SourceSelector from "./SourceSelector";
 import isEqual from "lodash.isequal";
-
-import { federal_options, regional_options, local_options } from "../constants";
 
 export default {
   name: "FilterLeads",
@@ -110,7 +84,8 @@ export default {
   },
   components: {
     "login-required": LoginRequired,
-    Lead
+    Lead,
+    SourceSelector
   },
   data() {
     return {
@@ -118,6 +93,7 @@ export default {
       loading: true,
       lead_ids: [],
       form: this.initForm(this.$route.query),
+      sources: this.initSource(this.$route.query),
       page: 0,
       page_count: 1
     };
@@ -128,37 +104,17 @@ export default {
     }),
     initForm(query) {
       return {
-        federal: this.decodeSourceValue(query.federal),
-        regional: this.decodeSourceValue(query.regional),
-        local: this.decodeSourceValue(query.local),
         filter: query.filter,
         from: query.from,
         to: query.to
       };
     },
-    decodeSourceValue(value) {
-      if (value === "exclude") {
-        return {
-          check: false,
-          select: null
-        };
-      } else if (value === undefined) {
-        return {
-          check: true,
-          select: null
-        };
-      } else {
-        return {
-          check: true,
-          select: value
-        };
-      }
-    },
-    encodeSourceValue({ check, select }) {
-      if (!check) {
-        return "exclude";
-      }
-      return select ? select : undefined;
+    initSource(query) {
+      return {
+        federal: query.federal,
+        regional: query.regional,
+        local: query.regional
+      };
     },
     loadMore() {
       const filter = this.query;
@@ -184,13 +140,8 @@ export default {
         });
     },
     updateForm() {
-      const next = this.initForm(this.query);
-      ["federal", "regional", "local"].forEach(key => {
-        next[key].select = next[key].check
-          ? next[key].select
-          : this.form[key].select;
-      });
-      Vue.set(this, "form", next);
+      Vue.set(this, "form", this.initForm(this.query));
+      Vue.set(this, "sources", this.initSource(this.query));
     },
     submitSearch() {
       if (isEqual(this.clean_filter(), this.query)) {
@@ -205,10 +156,10 @@ export default {
       );
     },
     clean_filter() {
-      const filter = Object.assign({}, this.form);
-      ["federal", "regional", "local"].forEach(
-        key => (filter[key] = this.encodeSourceValue(filter[key]))
-      );
+      const filter = {
+        ...this.form,
+        ...this.sources
+      };
 
       return Object.fromEntries(
         Object.entries(filter).filter(([, value]) => !!value)
@@ -251,10 +202,7 @@ export default {
     },
     disable_loading() {
       return this.loading || this.no_results || this.reached_end;
-    },
-    federal_options: () => federal_options,
-    regional_options: () => regional_options,
-    local_options: () => local_options
+    }
   },
   async mounted() {
     if (this.flagged && !this.signedIn) {
