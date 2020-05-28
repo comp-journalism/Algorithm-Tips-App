@@ -15,6 +15,15 @@ from api.alerts import alerts
 import json
 from os import environ
 
+SOURCES = None
+
+
+def load_sources():
+    global SOURCES
+    with open('data/sources.json') as f:
+        SOURCES = json.load(f)
+
+
 app = flask.Flask(__name__)
 cfg = configparser.ConfigParser()
 cfg.read('keys.conf')
@@ -25,6 +34,7 @@ app.register_blueprint(flags_bp)
 app.register_blueprint(auth)
 app.register_blueprint(alerts)
 app.before_first_request(init_pool)
+app.before_first_request(load_sources)
 
 LEAD_FIELDS = [
     leads.c.id,
@@ -101,13 +111,12 @@ def filter_leads(uid, flagged=False):
 
     - filter defines the keyword(s) to use to search
     - from / to are start / end dates to search within
-    - source is a source filter (matched on equality)
+    - federal / regional / local define source filters which are matched on equality. "exclude" is a special value that indicates they should not be included.
     - page is a number from 1 to ...
     """
     filter_ = request.args.get('filter', None)
     from_ = request.args.get('from', None)
     to = request.args.get('to', None)
-    source = request.args.get('source', None)
     page = request.args.get('page', 1, int)
 
     where = []
@@ -119,8 +128,21 @@ def filter_leads(uid, flagged=False):
         where.append(leads.c.discovered_dt >= from_)
     if to is not None:
         where.append(leads.c.discovered_dt <= to)
-    if source is not None:
-        where.append(leads.c.jurisdiction == source)
+
+    # construct an OR of INs / EQs
+    source_values = []
+    for key in ['federal', 'regional', 'local']:
+        value = request.args.get(key, None)
+        if value is None:
+            source_values += SOURCES[key]
+        elif value in SOURCES[key]:
+            source_values.append(value)
+        else:
+            # value is exclude or invalid
+            pass
+
+    if len(source_values) > 0:
+        where.append(leads.c.jurisdiction.in_(source_values))
 
     query = build_lead_selection(
         uid, where=where, flagged_only=flagged)\
@@ -154,6 +176,8 @@ def filter_leads(uid, flagged=False):
 
         meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
         meta['page'] = page
+        if 'flagged' in meta:
+            del meta['flagged']
 
         ratings_query = select([crowd_ratings]).where(
             crowd_ratings.c.lead_id.in_(tuple(res_map.keys())))

@@ -186,7 +186,9 @@ export default {
     updateForm() {
       const next = this.initForm(this.query);
       ["federal", "regional", "local"].forEach(key => {
-        next[key].select = this.form[key].select;
+        next[key].select = next[key].check
+          ? next[key].select
+          : this.form[key].select;
       });
       Vue.set(this, "form", next);
     },

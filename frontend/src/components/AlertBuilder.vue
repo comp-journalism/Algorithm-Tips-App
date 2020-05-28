@@ -53,7 +53,7 @@
 import Vue from "vue";
 import LoginRequired from "./LoginRequired";
 import Lead from "./Lead";
-import { source_options, frequency_options } from "../constants";
+import { frequency_options } from "../constants";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
@@ -77,7 +77,7 @@ export default {
     ...mapGetters("alerts", ["find"]),
     ...mapGetters("leads", { getFilter: "filter-get" }),
     sources() {
-      return source_options;
+      return [];
     },
     freqs() {
       return frequency_options;

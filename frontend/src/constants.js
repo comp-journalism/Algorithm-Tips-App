@@ -1,20 +1,19 @@
+import sources from '../../data/sources.json';
+
 export const federal_options = [
     { value: null, text: 'Any' },
-    "Federal Agency - Executive",
-    "Federal Agency - Judicial",
-    "Federal Agency - Legislative"
+    ...sources.federal
 ];
 
 export const regional_options = [
     { value: null, text: 'Any' },
-    "State/Local Govt",
-    "Interstate Agency",
-    "Native Sovereign Nation"
+    ...sources.regional
 ];
 
 export const local_options = [
     { value: null, text: 'Any' },
-    "City", "County"];
+    ...sources.local
+];
 
 export const frequency_options = [
     { value: 0, text: 'Weekly' },
