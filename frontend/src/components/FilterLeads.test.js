@@ -41,7 +41,10 @@ describe('FilterLeads', () => {
             getters: {
                 find: jest.fn(() => () => data),
                 'filter-get': jest.fn(() => () => [1420]),
-                'filter-pages': jest.fn(() => () => 1),
+                'filter-pages': jest.fn(() => () => ({
+                    page_count: 1,
+                    num_results: 5
+                })),
             }
         };
 
@@ -141,5 +144,32 @@ describe('FilterLeads', () => {
         });
 
         el.destroy();
+    });
+
+    it('should not get more pages than there are', async () => {
+        router.push('/db');
+        mountFilter();
+
+        await Vue.nextTick();
+
+        expect(leads_module.actions.filter.mock.calls.length).toBe(1);
+    });
+
+    it('should get more results at the bottom of the page', async () => {
+        router.push('/db');
+        leads_module.getters['filter-pages'].mockReturnValue(() => ({
+            page_count: 2,
+            num_results: 10
+        }));
+        let i = 0;
+        leads_module.getters['filter-get'].mockReturnValueOnce(() => {
+            [9999 + i++]
+        });
+        leads_module.actions.filter.mockResolvedValue(null);
+        mountFilter();
+
+        await Vue.nextTick();
+
+        expect(leads_module.actions.filter.mock.calls.length).toBe(2);
     });
 });
