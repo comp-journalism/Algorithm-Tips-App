@@ -1,7 +1,6 @@
 import re
 import flask
 from datetime import datetime, timedelta
-from flask_mail import Message
 from flask import Blueprint, request
 from sqlalchemy.sql import select, and_, text, not_
 from api.db import engine
