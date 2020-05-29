@@ -26,11 +26,12 @@ export default {
         [STORE_LEAD](state, lead) {
             Vue.set(state.leads, lead.id, lead);
         },
-        [STORE_FILTER](state, { num_pages, page, ids, filter }) {
+        [STORE_FILTER](state, { num_pages, num_results, page, ids, filter }) {
             const key = filterKey(filter);
             if (!state.filters[key]) {
                 Vue.set(state.filters, key, {
                     num_pages,
+                    num_results,
                     page_contents: {}
                 });
             }
@@ -77,12 +78,29 @@ export default {
                 commit(STORE_FILTER, {
                     filter: { ...params, flagged },
                     num_pages: res.data.num_pages,
+                    num_results: res.data.num_results,
                     ids, page
                 });
             } catch (error) {
                 console.error(error);
                 throw error;
             }
+        },
+        async updateFlag({ commit }, { id, flag }) {
+            console.log(id, flag);
+            if (flag) {
+                await axios.put(
+                    api_url(`flag/${id}`),
+                    {},
+                    { withCredentials: true }
+                );
+            } else {
+                await axios.delete(api_url(`flag/${id}`), {
+                    withCredentials: true
+                });
+            }
+
+            commit(SET_FLAG, { id, flag: flag });
         },
         async updateAllFlags({ commit, state }) {
             const ids = Object.keys(state.leads).map(Number);
@@ -111,7 +129,7 @@ export default {
                 return null;
             }
 
-            return meta.num_pages;
+            return { page_count: meta.num_pages, num_results: meta.num_results };
         }
     }
 };

@@ -1,6 +1,6 @@
 <template>
   <div class="lead-box">
-    <b-card no-body>
+    <b-card no-body :header-bg-variant="lead.flagged ? 'warning' : 'default'">
       <template v-slot:header>
         <div class="d-flex justify-content-between align-items-center">
           <router-link :to="page_url" v-if="headerLink" class="header-link">
@@ -34,7 +34,12 @@
           <dt class="col-sm-4">Main Topics</dt>
           <dd class="col-sm-8">{{ lead.topic }}</dd>
           <dt class="col-sm-4">People &amp; Organizations</dt>
-          <dd class="col-sm-8">{{ people_orgs.join(", ") }}</dd>
+          <dd class="col-sm-8">
+            <template v-if="people_orgs.length > 0">{{ people_orgs.join(", ") }}</template>
+            <template v-else>
+              <em class="text-muted">None found</em>
+            </template>
+          </dd>
         </dl>
 
         <h5 v-if="ratings_split.length">Crowd Ratings</h5>
@@ -46,8 +51,8 @@
             <b-icon-chevron-right class="when-closed" />
             <b-icon-chevron-down class="when-open" />
             <span class="rating-title">{{ rating.title }}</span>
-            <b-progress :max="5" class="w-25 float-right inline-bar" variant="info">
-              <b-progress-bar :value="rating.score"></b-progress-bar>
+            <b-progress :max="4" class="w-25 float-right inline-bar" variant="info">
+              <b-progress-bar :value="rating.score - 1"></b-progress-bar>
             </b-progress>
             <span class="score-display float-right">{{ rating.score.toFixed(1) }} / 5</span>
           </div>
@@ -60,37 +65,50 @@
               :items="rating.comments"
             ></b-table-lite>
             <span v-else>
-              <em>No rating information available.</em>
+              <em class="text-muted">No rating information available.</em>
             </span>
           </b-collapse>
         </b-list-group-item>
       </b-list-group>
     </b-card>
+    <b-modal
+      id="flag-remove-dialog"
+      v-if="confirmRemove"
+      ref="delete-modal"
+      centered
+      title="Are you sure?"
+      ok-title="Remove Flag"
+      ok-variant="danger"
+      @hidden="cancelRemove"
+      @ok="commitRemove"
+      :visible="pendingDeletion"
+    >
+      <p>Removing this flag will immediately remove it from this page. Are you sure?</p>
+    </b-modal>
   </div>
 </template>
 
 <script>
 import moment from "moment";
-import axios from "axios";
-import { mapGetters, mapMutations } from "vuex";
-import { SET_FLAG } from "../store/leads";
-import { api_url } from "../api";
+import { mapGetters, mapActions } from "vuex";
 import externalLink from "./external-link.vue";
+import sentence_case from "../sentence-case";
 
 export default {
   name: "Lead",
   components: {
     "external-link": externalLink
   },
-  props: { id: Number, headerLink: Boolean },
+  props: { id: Number, headerLink: Boolean, confirmRemove: Boolean },
   data: () => {
     return {
-      flagPending: false
+      flagPending: false,
+      pendingDeletion: false
     };
   },
   methods: {
-    ...mapMutations({
-      updateFlag: `leads/${SET_FLAG}`
+    ...mapActions({
+      updateFlag: `leads/updateFlag`
     }),
     redirect_login() {
       this.$router.push({
@@ -108,32 +126,35 @@ export default {
 
       try {
         this.flagPending = true;
-        await axios.put(
-          api_url(`flag/${this.id}`),
-          {},
-          { withCredentials: true }
-        );
-
-        this.updateFlag({ id: this.id, flag: true });
+        await this.updateFlag({ id: this.id, flag: true });
       } catch (err) {
         console.error("Unable to set flag", err);
       } finally {
         this.flagPending = false;
       }
     },
-    async unsetFlag() {
+    unsetFlag() {
       if (!this.signedIn) {
         this.redirect_login();
         return;
       }
 
+      if (this.confirmRemove) {
+        this.pendingDeletion = true;
+      } else {
+        this.commitRemove();
+      }
+    },
+    cancelRemove() {
+      this.pendingDeletion = false;
+    },
+    async commitRemove() {
+      this.pendingDeletion = false;
       try {
         this.flagPending = true;
-        await axios.delete(api_url(`flag/${this.id}`), {
-          withCredentials: true
-        });
+        await this.updateFlag({ id: this.id, flag: false });
 
-        this.updateFlag({ id: this.id, flag: false });
+        this.$emit("remove-flag", this.id);
       } catch (err) {
         console.error("Unable to unset flag", err);
       } finally {
@@ -161,12 +182,14 @@ export default {
       )}%22+site%3A.gov+-site%3A.nih.gov&as_qdr=w1&lr=en&num=100`;
     },
     people_orgs() {
-      const people = JSON.parse(this.lead.people);
-      const orgs = JSON.parse(this.lead.organizations);
+      const people = JSON.parse(this.lead.people) || {};
+      const orgs = JSON.parse(this.lead.organizations) || {};
 
       const merged = Object.entries(people).concat(Object.entries(orgs));
       const max_count = Math.max(...merged.map(([, count]) => count));
-      const filtered = merged.filter(([, count]) => count > max_count / 2);
+      const filtered = merged.filter(
+        ([, count]) => count > 1 && count > max_count / 2
+      );
       filtered.sort(([, a], [, b]) => b - a);
 
       return filtered.map(([name]) => name);
@@ -190,7 +213,7 @@ export default {
             category: key,
             label: LABELS[ix],
             score: 5 - obj[key] + 1,
-            comment: obj[`${key}_explanation`]
+            comment: sentence_case(obj[`${key}_explanation`])
           };
         });
 

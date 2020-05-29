@@ -1,0 +1,16 @@
+{
+    "federal": [
+        "Federal Agency - Executive",
+        "Federal Agency - Judicial",
+        "Federal Agency - Legislative"
+    ],
+    "regional": [
+        "State/Local Govt",
+        "Interstate Agency",
+        "Native Sovereign Nation"
+    ],
+    "local": [
+        "City",
+        "County"
+    ]
+}

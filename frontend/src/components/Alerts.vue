@@ -14,7 +14,7 @@
         </b-thead>
         <b-tbody>
           <b-tr :key="alert.id" v-for="alert in alerts">
-            <b-td>{{ formatSource(alert.source) }}</b-td>
+            <b-td>{{ formatSource(alert.sources) }}</b-td>
             <b-td>{{ formatFrequency(alert.frequency) }}</b-td>
             <b-td>{{ alert.filter }}</b-td>
             <b-td>{{ alert.recipient }}</b-td>
@@ -55,6 +55,7 @@
 import LoginRequired from "./LoginRequired";
 import { mapGetters, mapActions } from "vuex";
 import { frequency_options } from "../constants";
+import sentence_case from "../sentence-case";
 
 export default {
   name: "Alerts",
@@ -96,10 +97,22 @@ export default {
       };
     },
     formatSource(source) {
-      if (source === null) {
+      const result = Object.entries(source)
+        .map(([key, value]) => {
+          if (value === "exclude") {
+            return `No ${sentence_case(key)}`;
+          } else if (value === null) {
+            return `Any ${sentence_case(key)}`;
+          } else {
+            return value;
+          }
+        })
+        .join(", ");
+
+      if (result === "") {
         return "Any Source";
       } else {
-        return source;
+        return result;
       }
     },
     formatFrequency(freq) {

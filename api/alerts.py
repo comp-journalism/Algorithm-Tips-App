@@ -28,6 +28,16 @@ def is_confirmed(uid, emails, con):
 
         return res.rowcount >= 1
 
+def format_alert(row):
+    return {
+        'sources': {
+            'federal': row['federal_source'],
+            'regional': row['regional_source'],
+            'local': row['local_source']
+        },
+        **{k: v for k, v in row.items() if not k.endswith('_source')}
+    }
+
 
 @alerts.route('/<alert_id>', methods=('GET',))
 @login_required
@@ -40,7 +50,7 @@ def lookup_alert(uid, alert_id):
             # does not exist or no access
             return flask.abort(404)
 
-        response = dict(res.fetchone().items())
+        response = format_alert(res.fetchone())
         response['confirmed'] = is_confirmed(uid, response['recipient'], con)
         return flask.jsonify(response)
 
@@ -61,7 +71,9 @@ def update_alert(uid, alert_id):
         query = alerts_.update().values(  # pylint: disable=no-value-for-parameter
             filter=data['filter'],
             recipient=data['recipient'],
-            source=data['source'],
+            federal_source=data['sources'].get('federal', None),
+            regional_source=data['sources'].get('regional', None),
+            local_source=data['sources'].get('local', None),
             frequency=data['frequency']
         ).where(and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
 
@@ -99,7 +111,7 @@ def list_alerts(uid):
             return {'alerts': []}
 
         results = res.fetchall()
-        alert_list = [dict(r.items()) for r in results]
+        alert_list = [format_alert(r) for r in results]
 
         confirmed = is_confirmed(uid, [alert['recipient']
                                        for alert in alert_list], con)
@@ -151,7 +163,9 @@ def create_alert(uid):
             query = alerts_.insert().values(  # pylint: disable=no-value-for-parameter
                 filter=data['filter'],
                 recipient=data['recipient'],
-                source=data['source'],
+                federal_source=data['sources'].get('federal', None),
+                regional_source=data['sources'].get('regional', None),
+                local_source=data['sources'].get('local', None),
                 frequency=data['frequency'],
                 user_id=uid
             )

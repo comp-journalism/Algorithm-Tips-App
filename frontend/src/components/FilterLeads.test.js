@@ -12,6 +12,10 @@ localVue.use(VueRouter);
 localVue.use(BootstrapVue);
 localVue.use(IconsPlugin);
 
+process.on('unhandledRejection', (reason) => {
+    console.log('Unhandled Rejection', reason);
+});
+
 describe('FilterLeads', () => {
     let store;
     let leads_module;
@@ -37,7 +41,10 @@ describe('FilterLeads', () => {
             getters: {
                 find: jest.fn(() => () => data),
                 'filter-get': jest.fn(() => () => [1420]),
-                'filter-pages': jest.fn(() => () => 1),
+                'filter-pages': jest.fn(() => () => ({
+                    page_count: 1,
+                    num_results: 5
+                })),
             }
         };
 
@@ -46,10 +53,9 @@ describe('FilterLeads', () => {
         });
     });
 
-    const makeFilter = (fn) => (query, flagged = false) => fn(FilterLeads, {
+    const makeFilter = (fn) => (flagged = false) => fn(FilterLeads, {
         propsData: {
             flagged,
-            query,
         },
         localVue,
         store,
@@ -57,7 +63,7 @@ describe('FilterLeads', () => {
     });
 
     const shallowFilter = makeFilter(shallowMount);
-    const mountFilter = makeFilter((q, flagged, opts) => mount(q, flagged, {
+    const mountFilter = makeFilter((component, opts) => mount(component, {
         attachToDocument: true,
         ...opts
     }));
@@ -68,7 +74,11 @@ describe('FilterLeads', () => {
             from: '2020-1-20',
         };
 
-        const el = shallowFilter(query);
+        router.push({
+            path: '/db',
+            query
+        });
+        const el = shallowFilter();
 
         expect(leads_module.actions.filter.mock.calls[0][1]).toEqual({
             flagged: false,
@@ -83,8 +93,10 @@ describe('FilterLeads', () => {
     });
 
     it('should set the query string after submitting the search form', async () => {
-        const query = {};
-        const el = mountFilter(query, false);
+        router.push('/db');
+        const el = mountFilter(false);
+
+        await Vue.nextTick();
 
         el.find("#filter-input").setValue('test');
         await el.find("#lead-filter").trigger('submit');
@@ -102,7 +114,11 @@ describe('FilterLeads', () => {
         const query = {
             to: '2020-01-01',
         };
-        const el = mountFilter(query, false);
+        router.push({
+            path: '/db',
+            query
+        });
+        const el = mountFilter(false);
 
         el.find("#filter-input").setValue('');
         await el.find("#lead-filter").trigger('submit');
@@ -119,7 +135,7 @@ describe('FilterLeads', () => {
 
     it('should redirect to login if flagged and not logged in', async () => {
         router.push('/flags');
-        const el = mountFilter({}, true);
+        const el = mountFilter(true);
 
         await Vue.nextTick();
         expect(router.currentRoute.path).toBe('/login');
@@ -128,5 +144,32 @@ describe('FilterLeads', () => {
         });
 
         el.destroy();
+    });
+
+    it('should not get more pages than there are', async () => {
+        router.push('/db');
+        mountFilter();
+
+        await Vue.nextTick();
+
+        expect(leads_module.actions.filter.mock.calls.length).toBe(1);
+    });
+
+    it('should get more results at the bottom of the page', async () => {
+        router.push('/db');
+        leads_module.getters['filter-pages'].mockReturnValue(() => ({
+            page_count: 2,
+            num_results: 10
+        }));
+        let i = 0;
+        leads_module.getters['filter-get'].mockReturnValueOnce(() => {
+            [9999 + i++]
+        });
+        leads_module.actions.filter.mockResolvedValue(null);
+        mountFilter();
+
+        await Vue.nextTick();
+
+        expect(leads_module.actions.filter.mock.calls.length).toBe(2);
     });
 });

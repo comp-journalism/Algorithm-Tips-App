@@ -11,15 +11,7 @@
           </div>
           <b-collapse id="advanced-filters">
             <b-form-group
-              label="Discovered Before:"
-              label-for="to-date"
-              label-cols-sm="3"
-              label-align="right"
-            >
-              <b-form-datepicker id="to-date" v-model="form.to" />
-            </b-form-group>
-            <b-form-group
-              label="Discovered After:"
+              label="Discovered On or After:"
               label-for="from-date"
               label-cols-sm="3"
               label-align="right"
@@ -27,17 +19,20 @@
               <b-form-datepicker id="from-date" v-model="form.from" />
             </b-form-group>
             <b-form-group
-              label="Source:"
-              label-for="source-select"
+              label="Discovered On or Before:"
+              label-for="to-date"
               label-cols-sm="3"
               label-align="right"
             >
-              <b-form-select id="source-select" v-model="form.source" :options="source_options"></b-form-select>
+              <b-form-datepicker id="to-date" v-model="form.to" />
+            </b-form-group>
+            <b-form-group label="Included Sources:" label-cols-sm="3" label-align="right">
+              <source-selector v-model="sources" />
             </b-form-group>
           </b-collapse>
 
           <b-button-group id="submit-group" class="float-right">
-            <b-button to="/db">Reset</b-button>
+            <b-button :to="$route.path">Reset</b-button>
             <b-button id="submit-search" type="submit" :to="search_path" variant="primary">Search</b-button>
           </b-button-group>
         </b-form>
@@ -52,15 +47,28 @@
           <em>No results found</em>
         </p>
       </div>
-      <div
-        id="leads"
-        v-else
-        v-infinite-scroll="loadMore"
-        infinite-scroll-disabled="disable_loading"
-        infinite-scroll-distance="10"
-        class="row justify-content-center"
-      >
-        <Lead :key="id" v-for="id in lead_ids" :id="id" header-link />
+      <div v-else>
+        <div v-if="num_results > 0" class="row">
+          <p>
+            <em>{{ num_results }} results found.</em>
+          </p>
+        </div>
+        <div
+          id="leads"
+          v-infinite-scroll="loadMore"
+          infinite-scroll-disabled="disable_loading"
+          infinite-scroll-distance="10"
+          class="row justify-content-center"
+        >
+          <Lead
+            :key="id"
+            v-for="id in lead_ids"
+            :id="id"
+            header-link
+            :confirm-remove="flagged"
+            @remove-flag="leadFlagRemoved"
+          />
+        </div>
       </div>
       <div id="spinner-container" class="row justify-content-center" v-if="loading">
         <b-spinner />
@@ -70,13 +78,14 @@
 </template>
 
 <script>
+import Vue from "vue";
 import Lead from "./Lead.vue";
 import { mapActions, mapGetters } from "vuex";
 import infiniteScroll from "vue-infinite-scroll";
 import EventBus from "../event-bus";
 import LoginRequired from "./LoginRequired";
-
-import { source_options } from "../constants";
+import SourceSelector from "./SourceSelector";
+import isEqual from "lodash.isequal";
 
 export default {
   name: "FilterLeads",
@@ -84,33 +93,43 @@ export default {
     infiniteScroll
   },
   props: {
-    query: Object,
     flagged: Boolean
   },
   components: {
     "login-required": LoginRequired,
-    Lead
+    Lead,
+    SourceSelector
   },
   data() {
-    const query = this.query || {};
     return {
       error: null,
       loading: true,
       lead_ids: [],
-      form: {
-        filter: query.filter,
-        from: query.from,
-        to: query.to,
-        source: query.source || null
-      },
+      form: this.initForm(this.$route.query),
+      sources: this.initSource(this.$route.query),
       page: 0,
-      page_count: 1
+      page_count: 1,
+      num_results: 0
     };
   },
   methods: {
     ...mapActions({
       filterLeads: "leads/filter"
     }),
+    initForm(query) {
+      return {
+        filter: query.filter,
+        from: query.from,
+        to: query.to
+      };
+    },
+    initSource(query) {
+      return {
+        federal: query.federal,
+        regional: query.regional,
+        local: query.regional
+      };
+    },
     loadMore() {
       const filter = this.query;
 
@@ -126,7 +145,9 @@ export default {
           this.lead_ids = this.lead_ids.concat(
             this.getFilter(filter, this.page, this.flagged)
           );
-          this.page_count = this.getFilterPages(filter, this.flagged);
+          const meta = this.getFilterPages(filter, this.flagged);
+          this.page_count = meta.page_count;
+          this.num_results = meta.num_results;
           this.loading = false;
         })
         .catch(err => {
@@ -134,20 +155,35 @@ export default {
           this.error = err;
         });
     },
-    clearForm() {
-      this.form = {
-        filter: undefined,
-        from: undefined,
-        to: undefined,
-        source: null
-      };
+    updateForm() {
+      Vue.set(this, "form", this.initForm(this.query));
+      Vue.set(this, "sources", this.initSource(this.query));
+    },
+    leadFlagRemoved(id) {
+      if (this.flagged) {
+        this.lead_ids = this.lead_ids.filter(lid => lid !== id);
+      }
     },
     submitSearch() {
-      this.$router.push(this.search_path);
+      if (isEqual(this.clean_filter(), this.query)) {
+        return;
+      }
+      this.$router.push(
+        this.search_path,
+        () => {},
+        err => {
+          console.error(err);
+        }
+      );
     },
     clean_filter() {
+      const filter = {
+        ...this.form,
+        ...this.sources
+      };
+
       return Object.fromEntries(
-        Object.entries(this.form).filter(([, value]) => !!value)
+        Object.entries(filter).filter(([, value]) => !!value)
       );
     },
     redirect_login() {
@@ -155,6 +191,12 @@ export default {
         path: "/login",
         query: { redirect: this.$route.fullPath }
       });
+    },
+    newSearch() {
+      Vue.set(this, "lead_ids", []);
+      this.page = 0;
+      this.page_count = 1;
+      this.loadMore();
     }
   },
   computed: {
@@ -164,6 +206,9 @@ export default {
       getLead: "leads/find",
       signedIn: "user/signedIn"
     }),
+    query() {
+      return this.$route.query;
+    },
     no_results() {
       return !this.loading && this.lead_ids.length === 0;
     },
@@ -178,20 +223,23 @@ export default {
     },
     disable_loading() {
       return this.loading || this.no_results || this.reached_end;
-    },
-    source_options() {
-      return source_options;
     }
   },
   async mounted() {
     if (this.flagged && !this.signedIn) {
-      EventBus.$on("login", this.loadMore);
+      EventBus.$on("login", this.newSearch);
     } else {
-      this.loadMore();
+      this.newSearch();
     }
   },
   beforeDestroy() {
-    EventBus.$off("login", this.loadMore);
+    EventBus.$off("login", this.newSearch);
+  },
+  watch: {
+    query() {
+      this.updateForm();
+      this.newSearch();
+    }
   }
 };
 </script>
