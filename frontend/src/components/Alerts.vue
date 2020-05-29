@@ -25,12 +25,14 @@
             <b-td>{{ alert.filter }}</b-td>
             <b-td>{{ alert.recipient }}</b-td>
             <b-td class="row-controls text-right">
-              <b-icon-exclamation-circle
-                v-if="!alert.confirmed"
-                v-b-popover.hover.top="'This email has not been confirmed and will not receive alerts. If you have not received a confirmation email, click this button to resend it.'"
-                @click="reconfirm(alert.id)"
-                title="Email Not Confirmed"
-              />
+              <a href @click.prevent="reconfirm(alert.id)">
+                <b-icon-exclamation-circle
+                  v-if="!alert.confirmed"
+                  v-b-popover.hover.top="'This email has not been confirmed and will not receive alerts. If you have not received a confirmation email, click this button to resend it.'"
+                  variant="danger"
+                  title="Email Not Confirmed"
+                />
+              </a>
               <router-link :to="edit_path(alert)">
                 <b-icon-pencil />
               </router-link>
