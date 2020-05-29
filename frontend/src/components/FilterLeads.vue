@@ -47,22 +47,28 @@
           <em>No results found</em>
         </p>
       </div>
-      <div
-        id="leads"
-        v-else
-        v-infinite-scroll="loadMore"
-        infinite-scroll-disabled="disable_loading"
-        infinite-scroll-distance="10"
-        class="row justify-content-center"
-      >
-        <Lead
-          :key="id"
-          v-for="id in lead_ids"
-          :id="id"
-          header-link
-          :confirm-remove="flagged"
-          @remove-flag="leadFlagRemoved"
-        />
+      <div v-else>
+        <div v-if="num_results > 0" class="row">
+          <p>
+            <em>{{ num_results }} results found.</em>
+          </p>
+        </div>
+        <div
+          id="leads"
+          v-infinite-scroll="loadMore"
+          infinite-scroll-disabled="disable_loading"
+          infinite-scroll-distance="10"
+          class="row justify-content-center"
+        >
+          <Lead
+            :key="id"
+            v-for="id in lead_ids"
+            :id="id"
+            header-link
+            :confirm-remove="flagged"
+            @remove-flag="leadFlagRemoved"
+          />
+        </div>
       </div>
       <div id="spinner-container" class="row justify-content-center" v-if="loading">
         <b-spinner />
@@ -102,7 +108,8 @@ export default {
       form: this.initForm(this.$route.query),
       sources: this.initSource(this.$route.query),
       page: 0,
-      page_count: 1
+      page_count: 1,
+      num_results: 0
     };
   },
   methods: {
@@ -138,7 +145,9 @@ export default {
           this.lead_ids = this.lead_ids.concat(
             this.getFilter(filter, this.page, this.flagged)
           );
-          this.page_count = this.getFilterPages(filter, this.flagged);
+          const meta = this.getFilterPages(filter, this.flagged);
+          this.page_count = meta.page_count;
+          this.num_results = meta.num_results;
           this.loading = false;
         })
         .catch(err => {

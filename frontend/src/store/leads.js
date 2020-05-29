@@ -26,11 +26,12 @@ export default {
         [STORE_LEAD](state, lead) {
             Vue.set(state.leads, lead.id, lead);
         },
-        [STORE_FILTER](state, { num_pages, page, ids, filter }) {
+        [STORE_FILTER](state, { num_pages, num_results, page, ids, filter }) {
             const key = filterKey(filter);
             if (!state.filters[key]) {
                 Vue.set(state.filters, key, {
                     num_pages,
+                    num_results,
                     page_contents: {}
                 });
             }
@@ -77,6 +78,7 @@ export default {
                 commit(STORE_FILTER, {
                     filter: { ...params, flagged },
                     num_pages: res.data.num_pages,
+                    num_results: res.data.num_results,
                     ids, page
                 });
             } catch (error) {
@@ -127,7 +129,7 @@ export default {
                 return null;
             }
 
-            return meta.num_pages;
+            return { page_count: meta.num_pages, num_results: meta.num_results };
         }
     }
 };
