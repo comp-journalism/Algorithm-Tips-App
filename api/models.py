@@ -12,7 +12,7 @@ users = Table('users', meta,
 
 leads = Table('leads', meta,
               Column('id', Integer, primary_key=True),
-              Column('discovered_dt', DateTime, nullable=False),
+              Column('discovered_dt', DateTime),
               Column('query_term', String, nullable=False),
               Column('link', String, nullable=False),
               Column('domain', String, nullable=False),
@@ -30,7 +30,8 @@ annotated_leads = Table('annotated_leads', meta,
                         Column('name', String, nullable=False),
                         Column('description', String, nullable=False),
                         Column('topic', String, nullable=False),
-                        Column('is_published', SmallInteger, nullable=False)
+                        Column('is_published', SmallInteger, nullable=False),
+                        Column('publication_date', DateTime),
                         )
 
 flags = Table('flags', meta,
