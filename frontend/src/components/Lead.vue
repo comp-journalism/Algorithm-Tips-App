@@ -27,14 +27,14 @@
 
         <h5>Additional Info</h5>
         <dl class="row">
-          <dt class="col-sm-4">Jurisdiction</dt>
-          <dd class="col-sm-8">{{ lead.jurisdiction }}</dd>
-          <dt class="col-sm-4">Agency</dt>
-          <dd class="col-sm-8">{{ lead.source }}</dd>
-          <dt class="col-sm-4">Main Topics</dt>
-          <dd class="col-sm-8">{{ lead.topic }}</dd>
-          <dt class="col-sm-4">People &amp; Organizations</dt>
-          <dd class="col-sm-8">
+          <dt class="col-sm-3 text-right">Jurisdiction</dt>
+          <dd class="col-sm-9">{{ lead.jurisdiction }}</dd>
+          <dt class="col-sm-3 text-right">Agency</dt>
+          <dd class="col-sm-9">{{ lead.source }}</dd>
+          <dt class="col-sm-3 text-right">Main Topics</dt>
+          <dd class="col-sm-9">{{ lead.topic }}</dd>
+          <dt class="col-sm-3 text-right">People &amp; Organizations</dt>
+          <dd class="col-sm-9">
             <template v-if="people_orgs.length > 0">{{ people_orgs.join(", ") }}</template>
             <template v-else>
               <em class="text-muted">None found</em>

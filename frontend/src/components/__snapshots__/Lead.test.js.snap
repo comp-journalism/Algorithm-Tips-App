@@ -12,14 +12,14 @@ exports[`Lead matches the snapshot 1`] = `
       <div class="found-by">Found via a search for “<external-link-stub href="https://www.google.com/search?hl=en&amp;q=%22rating%20system%22+site%3A.gov+-site%3A.nih.gov&amp;as_qdr=w1&amp;lr=en&amp;num=100">rating system</external-link-stub>” on June 21st, 2019</div>
       <h5>Additional Info</h5>
       <dl class="row">
-        <dt class="col-sm-4">Jurisdiction</dt>
-        <dd class="col-sm-8">Federal Agency - Executive</dd>
-        <dt class="col-sm-4">Agency</dt>
-        <dd class="col-sm-8">Department of Health and Human Services</dd>
-        <dt class="col-sm-4">Main Topics</dt>
-        <dd class="col-sm-8">Health</dd>
-        <dt class="col-sm-4">People &amp; Organizations</dt>
-        <dd class="col-sm-8">CMS</dd>
+        <dt class="col-sm-3 text-right">Jurisdiction</dt>
+        <dd class="col-sm-9">Federal Agency - Executive</dd>
+        <dt class="col-sm-3 text-right">Agency</dt>
+        <dd class="col-sm-9">Department of Health and Human Services</dd>
+        <dt class="col-sm-3 text-right">Main Topics</dt>
+        <dd class="col-sm-9">Health</dd>
+        <dt class="col-sm-3 text-right">People &amp; Organizations</dt>
+        <dd class="col-sm-9">CMS</dd>
       </dl>
       <h5>Crowd Ratings</h5>
     </b-card-body-stub>
