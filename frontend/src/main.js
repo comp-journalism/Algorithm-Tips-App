@@ -12,6 +12,7 @@ import PathNotFound from './components/PathNotFound.vue';
 import Alerts from './components/Alerts.vue';
 import AlertBuilder from './components/AlertBuilder.vue';
 import HowThisWorks from './components/HowThisWorks.vue';
+import ConfirmEmail from './components/ConfirmEmail.vue';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -60,6 +61,11 @@ const router = new VueRouter({
     {
       path: '/help', component: HowThisWorks,
       meta: { title: `Help | ${BASE_TITLE}` }
+    },
+    {
+      path: '/confirm-email', component: ConfirmEmail,
+      meta: { title: `Confirm Email | ${BASE_TITLE}` },
+      props: ({ query }) => ({ token: query.token }),
     },
     {
       path: '*', component: PathNotFound,

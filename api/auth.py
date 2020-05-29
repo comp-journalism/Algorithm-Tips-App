@@ -4,7 +4,7 @@ from google.auth.transport import requests
 from api.db import engine
 from api.models import users, pending_confirmations, confirmed_emails
 from sqlalchemy.sql import select, and_
-from flask import request, abort, Blueprint, session, current_app
+from flask import request, abort, Blueprint, session, current_app, jsonify
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 from functools import wraps
 
@@ -126,18 +126,29 @@ def confirm_email():
                 pending_confirmations.c.id == confirmation_id))
 
             if res.rowcount == 0:
-                return abort(400)
+                res = jsonify({
+                    'reason': 'No pending confirmation for that address.'
+                })
+                res.status_code = 400
+                return res
 
             confirmation = res.fetchone()
 
-            res = con.execute(confirmed_emails.insert().values(  # pylint: disable=no-value-for-parameter
+            con.execute(confirmed_emails.insert().values(  # pylint: disable=no-value-for-parameter
                 user_id=confirmation['user_id'],
                 email=confirmation['email']
             ))
+
+            con.execute(pending_confirmations.delete().where(  # pylint: disable=no-value-for-parameter
+                pending_confirmations.c.id == confirmation_id))
 
         return {
             'status': 'ok'
         }
     except BadSignature as e:
         print(e)
-        return abort(400)
+        res = jsonify({
+            'reason': 'That token is invalid or has expired. You can request another confirmation email on the Alerts page.'
+        })
+        res.status_code = 400
+        return res

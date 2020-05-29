@@ -31,7 +31,7 @@ cfg.read('keys.conf')
 app.secret_key = cfg.get('flask', 'session-key')
 CORS(app, supports_credentials='DEBUG' in environ)
 
-init_mail(app)
+init_mail()
 
 app.register_blueprint(flags_bp)
 app.register_blueprint(auth)

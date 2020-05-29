@@ -3,6 +3,12 @@
     <div class="row justify-contents-center">
       <h2>Alerts</h2>
       <b-table-simple striped>
+        <colgroup>
+          <col class="col-sm-5" />
+          <col class="col-sm-1" />
+          <col class="col-sm-1" />
+          <col class="col-sm-2" />
+        </colgroup>
         <b-thead>
           <b-tr>
             <b-th>Source</b-th>
@@ -97,8 +103,9 @@ export default {
       };
     },
     formatSource(source) {
-      const result = Object.entries(source)
-        .map(([key, value]) => {
+      const result = ["federal", "regional", "local"]
+        .map(key => {
+          const value = source[key];
           if (value === "exclude") {
             return `No ${sentence_case(key)}`;
           } else if (value === null) {
