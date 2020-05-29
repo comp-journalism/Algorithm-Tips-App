@@ -50,7 +50,7 @@
       <div v-else>
         <div v-if="num_results > 0" class="row">
           <p>
-            <em>{{ num_results }} results found.</em>
+            <em>{{ num_results }} Results Found</em>
           </p>
         </div>
         <div

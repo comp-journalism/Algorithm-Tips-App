@@ -29,7 +29,7 @@ exports[`FilterLeads should call filter on mount with the query param values 1`]
     </div>
     <div>
       <div class="row">
-        <p><em>5 results found.</em></p>
+        <p><em>5 Results Found</em></p>
       </div>
       <div id="leads" infinite-scroll-disabled="disable_loading" infinite-scroll-distance="10" class="row justify-content-center">
         <lead-stub id="1420" headerlink="true"></lead-stub>
