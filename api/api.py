@@ -123,7 +123,7 @@ def filter_leads(uid, flagged=False):
 
     if filter_ is not None:
         where.append(
-            text("match(name, description, topic) against (:filter in boolean mode) or match(people, organizations) against (:filter in boolean mode)").bindparams(filter=filter_))
+            text("(match(name, description, topic) against (:filter in boolean mode) or match(people, organizations) against (:filter in boolean mode))").bindparams(filter=filter_))
     if from_ is not None:
         where.append(leads.c.discovered_dt >= from_)
     if to is not None:
