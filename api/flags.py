@@ -24,7 +24,7 @@ def list_flags(uid):
     if len(ids) == 0:
         return {'flags': []}
 
-    with engine().connect() as con:
+    with engine().begin() as con:
         uflags = select([flags_.c.id, flags_.c.lead_id])\
             .where(flags_.c.user_id == uid).alias('uflags')
 
@@ -42,7 +42,7 @@ def list_flags(uid):
 @flags.route('/<lead_id>', methods=('PUT',))
 @login_required
 def put_flag(uid, lead_id):
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = flags_.insert().values(  # pylint: disable=no-value-for-parameter
             lead_id=lead_id, user_id=uid)
 
@@ -57,7 +57,7 @@ def put_flag(uid, lead_id):
 @flags.route('/<lead_id>', methods=('DELETE',))
 @login_required
 def delete_flag(uid, lead_id):
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = flags_.delete().where(  # pylint: disable=no-value-for-parameter
             and_(flags_.c.lead_id == lead_id, flags_.c.user_id == uid))
         res = con.execute(query)

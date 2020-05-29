@@ -5,6 +5,7 @@ from flask_mail import Message
 from flask import Blueprint, request
 from sqlalchemy.sql import select, and_, text, not_
 from api.db import engine
+from api.errors import abort_json, ConfirmationPendingError
 from api.models import alerts as alerts_, users, pending_confirmations, confirmed_emails
 from api.auth import login_required
 from api.mail import send_confirmation
@@ -28,6 +29,7 @@ def is_confirmed(uid, emails, con):
 
         return res.rowcount >= 1
 
+
 def format_alert(row):
     return {
         'sources': {
@@ -42,7 +44,7 @@ def format_alert(row):
 @alerts.route('/<alert_id>', methods=('GET',))
 @login_required
 def lookup_alert(uid, alert_id):
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = select([alerts_])\
             .where(and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
         res = con.execute(query)
@@ -67,7 +69,7 @@ def update_alert(uid, alert_id):
             'reason': 'Unable to read or validate alert data'
         })
 
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = alerts_.update().values(  # pylint: disable=no-value-for-parameter
             filter=data['filter'],
             recipient=data['recipient'],
@@ -90,7 +92,7 @@ def update_alert(uid, alert_id):
 @alerts.route('/<alert_id>', methods=('DELETE',))
 @login_required
 def delete_alert(uid, alert_id):
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = alerts_.delete().where(  # pylint: disable=no-value-for-parameter
             and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
         res = con.execute(query)
@@ -103,7 +105,7 @@ def delete_alert(uid, alert_id):
 @alerts.route('/list', methods=('GET',))
 @login_required
 def list_alerts(uid):
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = select([alerts_])\
             .where(alerts_.c.user_id == uid)
         res = con.execute(query)
@@ -136,7 +138,7 @@ def create_alert(uid):
             'reason': 'Unable to read or validate alert data'
         })
 
-    with engine().connect() as con:
+    with engine().begin() as con:
         # before beginning, check if this email belongs to another existing users
         query = select([users]).where(
             and_(users.c.email == data['recipient'], not_(users.c.id == uid)))
@@ -182,6 +184,31 @@ def create_alert(uid):
                 'reason': 'Unable to create alert in database'
             })
 
-        send_confirmation(uid, data['recipient'], con)
+        try:
+            send_confirmation(uid, data['recipient'], con)
+        except ConfirmationPendingError as err:
+            return abort_json(500, err.message)
+        else:
+            return {'id': alert_id}
 
-        return {'id': alert_id}
+
+@alerts.route('/<alert_id>/resend-confirmation')
+@login_required
+def resend_confirmation(alert_id, uid):
+    with engine().begin() as con:
+        query = select([alerts_]).where(
+            and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
+        res = con.execute(query)
+
+        if res.rowcount == 0:
+            return abort_json(400, 'This email address is already confirmed.')
+
+        alert = res.fetchone()
+
+        try:
+            send_confirmation(
+                uid, alert['recipient'], con, min_delay=timedelta(minutes=5))
+        except ConfirmationPendingError as err:
+            return abort_json(400, err.message)
+        else:
+            return {'status': 'ok'}

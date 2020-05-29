@@ -77,7 +77,7 @@ def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], flagged_only=Fa
 @app.route('/lead/<lead_id>')
 @login_used
 def get_lead(uid, lead_id):
-    with engine().connect() as con:
+    with engine().begin() as con:
         query = build_lead_selection(uid, where=[leads.c.id == lead_id])
 
         resultset = con.execute(query)
@@ -152,7 +152,7 @@ def filter_leads(uid, flagged=False):
         .order_by(leads.c.id)\
         .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
 
-    with engine().connect() as con:
+    with engine().begin() as con:
 
         result = con.execute(query)
 

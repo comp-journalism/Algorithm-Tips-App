@@ -2,6 +2,7 @@ from flask import current_app
 from itsdangerous import URLSafeTimedSerializer
 from configparser import ConfigParser
 from api.models import pending_confirmations, users
+from api.errors import ConfirmationPendingError
 from sqlalchemy.sql import select, and_, not_
 from datetime import datetime, timedelta
 import boto3
@@ -28,7 +29,7 @@ def init_mail():
     SENDER = config.get('mail', 'sender-address')
 
 
-def send_confirmation(uid, email, con):
+def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
     """Sends a confirmation email via Flask-Mail, then records the pending
     confirmation in the database to prevent spamming a recipient with
     confirmation emails."""
@@ -41,13 +42,14 @@ def send_confirmation(uid, email, con):
         return False  # no email sent
 
     # does this email have a recent pending confirmation?
-    min_date = datetime.now() - timedelta(days=1)
+    min_date = datetime.now() - min_delay
     query = select([pending_confirmations]).where(and_(
         pending_confirmations.c.email == email, pending_confirmations.c.send_date >= min_date))
     res = con.execute(query)
 
     if res.rowcount > 0:
-        return False  # no email sent
+        raise ConfirmationPendingError(
+            'The most recent confirmation was sent too recently. Please wait a few minutes and try again.')
 
     res = con.execute(pending_confirmations.insert().values(  # pylint: disable=no-value-for-parameter
         user_id=uid,
@@ -102,7 +104,6 @@ def send_confirmation(uid, email, con):
         )
     except Exception as e:
         print(e)
-        print(e.response['Error']['Message'])
         return False
     else:
         print('sent confirmation email to ' + email)

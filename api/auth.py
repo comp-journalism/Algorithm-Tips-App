@@ -3,6 +3,7 @@ from werkzeug.exceptions import BadRequest
 from google.auth.transport import requests
 from api.db import engine
 from api.models import users, pending_confirmations, confirmed_emails
+from api.errors import abort_json, NoSuchConfirmation
 from sqlalchemy.sql import select, and_
 from flask import request, abort, Blueprint, session, current_app, jsonify
 from itsdangerous import URLSafeTimedSerializer, BadSignature
@@ -36,7 +37,7 @@ def signup(token):
     if info is None:
         return None
 
-    with engine().connect() as con:
+    with engine().begin() as con:
         email = info['email'] if info['email_verified'] else None
 
         query = select([users.c.id]).where(
@@ -121,16 +122,13 @@ def confirm_email():
         # tokens only work for 24hr
         confirmation_id = serializer.loads(
             token, max_age=24 * 60 * 60, salt='confirm')
-        with engine().connect() as con:
+        with engine().begin() as con:
             res = con.execute(select([pending_confirmations]).where(
                 pending_confirmations.c.id == confirmation_id))
 
             if res.rowcount == 0:
-                res = jsonify({
-                    'reason': 'No pending confirmation for that address.'
-                })
-                res.status_code = 400
-                return res
+                raise NoSuchConfirmation(
+                    'No pending confirmation for that address')
 
             confirmation = res.fetchone()
 
@@ -140,15 +138,14 @@ def confirm_email():
             ))
 
             con.execute(pending_confirmations.delete().where(  # pylint: disable=no-value-for-parameter
-                pending_confirmations.c.id == confirmation_id))
+                and_(pending_confirmations.c.user_id == confirmation['user_id'],
+                     pending_confirmations.c.email == confirmation['email'])))
 
         return {
             'status': 'ok'
         }
+    except NoSuchConfirmation as e:
+        return abort_json(400, e.message)
     except BadSignature as e:
         print(e)
-        res = jsonify({
-            'reason': 'That token is invalid or has expired. You can request another confirmation email on the Alerts page.'
-        })
-        res.status_code = 400
-        return res
+        return abort_json(400, 'That token is invalid or has expired. You can request another confirmation email on the Alerts page.')

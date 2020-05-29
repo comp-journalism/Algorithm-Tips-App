@@ -28,6 +28,7 @@
               <b-icon-exclamation-circle
                 v-if="!alert.confirmed"
                 v-b-popover.hover.top="'This email has not been confirmed and will not receive alerts. If you have not received a confirmation email, click this button to resend it.'"
+                @click="reconfirm(alert.id)"
                 title="Email Not Confirmed"
               />
               <router-link :to="edit_path(alert)">
@@ -62,6 +63,8 @@ import LoginRequired from "./LoginRequired";
 import { mapGetters, mapActions } from "vuex";
 import { frequency_options } from "../constants";
 import sentence_case from "../sentence-case";
+import axios from "axios";
+import { api_url } from "../api";
 
 export default {
   name: "Alerts",
@@ -76,8 +79,28 @@ export default {
       listAlerts: "list",
       deleteAlert: "remove"
     }),
+    async reconfirm(alert_id) {
+      try {
+        await axios.get(api_url(`alert/${alert_id}/resend-confirmation`), {
+          withCredentials: true
+        });
+
+        this.$bvToast.toast("Confirmation Email Sent", {
+          title: "Success"
+        });
+      } catch (err) {
+        if (err.response) {
+          this.$bvToast.toast(
+            `Unable to send confirmation email: ${err.response.data.reason}`,
+            {
+              title: "Error",
+              variant: "danger"
+            }
+          );
+        }
+      }
+    },
     remove(alert) {
-      console.log(alert);
       this.pendingDeletion = alert.id;
     },
     commitRemove() {
