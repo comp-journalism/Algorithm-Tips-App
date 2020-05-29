@@ -55,6 +55,7 @@
 import LoginRequired from "./LoginRequired";
 import { mapGetters, mapActions } from "vuex";
 import { frequency_options } from "../constants";
+import sentence_case from "../sentence-case";
 
 export default {
   name: "Alerts",
@@ -96,8 +97,6 @@ export default {
       };
     },
     formatSource(source) {
-      const sentence_case = string =>
-        string.charAt(0).toUpperCase() + string.slice(1);
       const result = Object.entries(source)
         .map(([key, value]) => {
           if (value === "exclude") {

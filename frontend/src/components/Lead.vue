@@ -92,6 +92,7 @@
 import moment from "moment";
 import { mapGetters, mapActions } from "vuex";
 import externalLink from "./external-link.vue";
+import sentence_case from "../sentence-case";
 
 export default {
   name: "Lead",
@@ -212,7 +213,7 @@ export default {
             category: key,
             label: LABELS[ix],
             score: 5 - obj[key] + 1,
-            comment: obj[`${key}_explanation`]
+            comment: sentence_case(obj[`${key}_explanation`])
           };
         });
 
