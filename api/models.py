@@ -31,7 +31,7 @@ annotated_leads = Table('annotated_leads', meta,
                         Column('description', String, nullable=False),
                         Column('topic', String, nullable=False),
                         Column('is_published', SmallInteger, nullable=False),
-                        Column('publication_date', DateTime),
+                        Column('published_dt', DateTime),
                         )
 
 flags = Table('flags', meta,

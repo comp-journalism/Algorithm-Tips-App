@@ -1,15 +1,24 @@
 import re
 import flask
+from configparser import ConfigParser
 from datetime import datetime, timedelta
-from flask import Blueprint, request
-from sqlalchemy.sql import select, and_, text, not_
+from flask import Blueprint, request, current_app
+from sqlalchemy.sql import select, and_, text, not_, func, tuple_
 from api.db import engine
 from api.errors import abort_json, ConfirmationPendingError
-from api.models import alerts as alerts_, users, pending_confirmations, confirmed_emails
+from api.models import alerts as alerts_, users, pending_confirmations, confirmed_emails, sent_alert_contents, sent_alerts, leads, annotated_leads
 from api.auth import login_required
 from api.mail import send_confirmation
 
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
+
+
+def init_alerts():
+    cfg = ConfigParser()
+    cfg.read('keys.conf')
+
+    current_app.config['ALERT_TRIGGER_WHITELIST'] = cfg.get(
+        'alert-trigger', 'trigger_ip_whitelist').split(',')
 
 
 def is_confirmed(uid, emails, con):
@@ -211,3 +220,98 @@ def resend_confirmation(alert_id, uid):
             return abort_json(400, err.message)
         else:
             return {'status': 'ok'}
+
+
+def min_date_threshold(kind, fudge=timedelta(hours=6)):
+    """Calculate the minimum date threshold for each frequency type.
+
+    `fudge` gives a small error margin (default: 6 hours) to cope with clock and/or cron skew."""
+    if kind == 0:
+        return datetime.now() - timedelta(weeks=1) - fudge
+    elif kind == 1:
+        return datetime.now() - timedelta(days=10) - fudge
+    elif kind == 2:
+        return datetime.now() - timedelta(days=30) - fudge
+
+
+@alerts.route('/trigger', methods=('POST',))
+def trigger_alerts():
+    from api.api import build_filtered_lead_selection
+    if request.remote_addr not in current_app.config['ALERT_TRIGGER_WHITELIST']:
+        return abort_json(401, 'Unauthorized')
+
+    with engine().connect() as con:
+        # select all alerts where:
+        # 1. the recipient email is confirmed
+        # 2. the alert hasn't been sent in the current time period
+        confirmed = select(
+            [confirmed_emails.c.user_id, confirmed_emails.c.email]).cte()
+        query = select([alerts_, func.max(sent_alerts.c.send_date).label('last_sent')])\
+            .select_from(alerts_.outerjoin(sent_alerts, sent_alerts.c.alert_id == alerts_.c.id))\
+            .where(tuple_(alerts_.c.user_id, alerts_.c.recipient).in_(confirmed))\
+            .group_by(alerts_.c.id)
+
+        results = con.execute(query)
+
+        # these results satisfy #1, but not #2 yet
+        # however, we need to go row by row anyway because MySQL cannot match
+        # on column values (only plaintext)
+        for result in results:
+            row = dict(result)
+            if row['last_sent'] is not None and row['last_sent'] >= min_date_threshold(row['frequency']):
+                # has been sent more recently than we allow
+                continue
+            with con.begin():
+                query = build_filtered_lead_selection(
+                    filter_=row['filter'],
+                    from_=None,
+                    to=None,
+                    sources={
+                        key: row[f"{key}_source"]
+                        for key in ['federal', 'regional', 'local']
+                    },
+                    page=None,
+                    fields=[leads.c.id, annotated_leads.c.name],
+                    where=[
+                        annotated_leads.c.published_dt >= min_date_threshold(
+                            row['frequency'], fudge=timedelta(0))
+                    ]
+                )
+
+                lead_results = con.execute(query)
+
+                if lead_results.rowcount == 0:
+                    print(f"Skipping alert {row['id']}. No new results.")
+                    continue
+
+                # TODO render template with up to the first 3 leads
+
+                # record alert sending
+                sent_alert = {
+                    k: v
+                    for k, v in row.items()
+                    if k != 'id'
+                }
+
+                sent_alert['alert_id'] = row['id']
+                sent_alert['send_date'] = datetime.now()
+
+                query = sent_alerts.insert().values(  # pylint: disable=no-value-for-parameter
+                    **sent_alert)
+
+                res = con.execute(query)
+
+                send_id = res.inserted_primary_key[0]
+
+                sent_contents = [
+                    {'send_id': send_id,
+                     'lead_id': lead['id']}
+                    for lead in lead_results
+                ]
+
+                con.execute(sent_alert_contents.insert(  # pylint: disable=no-value-for-parameter
+                ), *sent_contents)
+
+                # TODO send email
+
+    return {'status': 'ok'}

@@ -11,7 +11,7 @@ from api.mail import init_mail
 from api.models import users, annotated_leads, leads, crowd_ratings, flags
 from api.auth import signup, parse_token, auth, login_used, login_required
 from api.flags import flags as flags_bp
-from api.alerts import alerts
+from api.alerts import alerts, init_alerts
 
 import json
 from os import environ
@@ -38,6 +38,7 @@ app.register_blueprint(auth)
 app.register_blueprint(alerts)
 app.before_first_request(init_pool)
 app.before_first_request(load_sources)
+app.before_first_request(init_alerts)
 
 LEAD_FIELDS = [
     leads.c.id,
@@ -72,6 +73,46 @@ def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], flagged_only=Fa
     query = select(fields).select_from(join)
 
     return query.where(and_(annotated_leads.c.is_published == True, *where))
+
+
+def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None, fields=LEAD_FIELDS, where=[], flagged_only=False):
+    """Build a filtered lead selection query. The filter parameters are required, but the remainder are optional.
+
+    Notes:
+    - Setting `page = None` disables pagination.
+    - Setting `uid = None` disables the `flagged` field in the output and the corresponding join.
+    """
+    where = [*where]
+    if filter_ is not None and filter_ != '':
+        where.append(
+            text("(match(name, description, topic) against (:filter in boolean mode) or match(people, organizations) against (:filter in boolean mode))").bindparams(filter=filter_))
+    if from_ is not None and from_ != '':
+        where.append(leads.c.discovered_dt >= from_)
+    if to is not None and to != '':
+        where.append(leads.c.discovered_dt <= to)
+
+    source_values = []
+    for key in ['federal', 'regional', 'local']:
+        value = sources.get(key, None)
+        if value is None:
+            source_values += SOURCES[key]
+        elif value in SOURCES[key]:
+            source_values.append(value)
+        else:
+            # value is exclude or invalid
+            pass
+
+    if len(source_values) > 0:
+        where.append(leads.c.jurisdiction.in_(source_values))
+
+    query = build_lead_selection(
+        uid=uid, fields=fields, where=where, flagged_only=flagged_only)
+
+    if page is not None:
+        query = query.order_by(leads.c.id)\
+            .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
+
+    return query
 
 
 @app.route('/lead/<lead_id>')
@@ -122,35 +163,8 @@ def filter_leads(uid, flagged=False):
     to = request.args.get('to', None)
     page = request.args.get('page', 1, int)
 
-    where = []
-
-    if filter_ is not None:
-        where.append(
-            text("(match(name, description, topic) against (:filter in boolean mode) or match(people, organizations) against (:filter in boolean mode))").bindparams(filter=filter_))
-    if from_ is not None:
-        where.append(leads.c.discovered_dt >= from_)
-    if to is not None:
-        where.append(leads.c.discovered_dt <= to)
-
-    # construct an OR of INs / EQs
-    source_values = []
-    for key in ['federal', 'regional', 'local']:
-        value = request.args.get(key, None)
-        if value is None:
-            source_values += SOURCES[key]
-        elif value in SOURCES[key]:
-            source_values.append(value)
-        else:
-            # value is exclude or invalid
-            pass
-
-    if len(source_values) > 0:
-        where.append(leads.c.jurisdiction.in_(source_values))
-
-    query = build_lead_selection(
-        uid, where=where, flagged_only=flagged)\
-        .order_by(leads.c.id)\
-        .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
+    query = build_filtered_lead_selection(
+        filter_, from_, to, request.args, page, uid, flagged_only=flagged)
 
     with engine().begin() as con:
 
@@ -171,11 +185,12 @@ def filter_leads(uid, flagged=False):
             })
 
         # count total results so we know the page count
-        count_query = build_lead_selection(uid=uid,
-                                           fields=[text('count(*) as num_results')], where=where, flagged_only=flagged)
+        count_query = build_filtered_lead_selection(filter_, from_, to, request.args, page=None, uid=uid,
+                                                    fields=[text('count(*) as num_results')], flagged_only=flagged)
         result = con.execute(count_query)
 
         meta = dict(result.fetchone().items())
+        print(meta)
 
         meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
         meta['page'] = page
