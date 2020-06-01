@@ -78,3 +78,25 @@ pending_confirmations = Table('pending_confirmations', meta,
                               Column('email', String, nullable=False),
                               Column('send_date', DateTime, nullable=False)
                               )
+
+sent_alerts = Table('sent_alerts', meta,
+                    Column('id', Integer, primary_key=True),
+                    # this is not a true foreign key because we will keep dangling
+                    # references around
+                    Column('alert_id', Integer, nullable=False),
+                    Column('send_date', DateTime, nullable=False),
+                    Column('user_id', None, ForeignKey('users.id')),
+                    Column('federal_source', String),
+                    Column('regional_source', String),
+                    Column('local_source', String),
+                    Column('frequency', SmallInteger, nullable=False),
+                    Column('recipient', String, nullable=False),
+                    Column('filter', String, nullable=False),
+                    )
+
+sent_alert_contents = Table('sent_alert_contents', meta,
+                            Column('id', Integer, primary_key=True),
+                            Column('send_id', None, ForeignKey(
+                                'sent_alerts.id')),
+                            Column('lead_id', None, ForeignKey('leads.id')),
+                            )
