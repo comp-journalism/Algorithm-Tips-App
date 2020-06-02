@@ -1,6 +1,6 @@
 from math import ceil
 import flask
-from flask import request
+from flask import request, current_app
 from flask_cors import CORS
 import configparser
 from sqlalchemy.sql import select, and_, text
@@ -19,17 +19,20 @@ with open('data/sources.json') as f:
     SOURCES = json.load(f)
 
 
-app = flask.Flask(__name__)
-cfg = configparser.ConfigParser()
-cfg.read('keys.conf')
-app.secret_key = cfg.get('flask', 'session-key')
-CORS(app, supports_credentials='DEBUG' in environ)
+def init_keys():
+    cfg = configparser.ConfigParser()
+    cfg.read('keys.conf')
+    current_app.secret_key = cfg.get('flask', 'session-key')
 
-init_mail()
+
+app = flask.Flask(__name__)
+CORS(app, supports_credentials='DEBUG' in environ)
 
 app.register_blueprint(flags_bp)
 app.register_blueprint(auth)
 app.register_blueprint(alerts)
+app.before_first_request(init_mail)
+app.before_first_request(init_keys)
 app.before_first_request(init_pool)
 app.before_first_request(init_alerts)
 
