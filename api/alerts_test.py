@@ -36,6 +36,11 @@ def send_confirmation(mocker):
     return mocker.patch('api.alerts.send_confirmation')
 
 
+@pytest.fixture
+def send_alert(mocker):
+    return mocker.patch('api.alerts.send_alert')
+
+
 def update_published_dt(conn, dt, lead_id):
     return conn.execute(annotated_leads.update().values(  # pylint: disable=no-value-for-parameter
         published_dt=dt
@@ -112,7 +117,7 @@ def test_create_alert_invalid_email(sqlite_connection, alert_app, send_confirmat
             'reason'] == 'Unable to read or validate alert data'
 
 
-def test_trigger_unconfirmed_email(sqlite_connection, alert_app, trigger_published_dt):
+def test_trigger_unconfirmed_email(sqlite_connection, send_alert, alert_app, trigger_published_dt):
     """Test triggering alerts when the email is not confirmed. Should not send email."""
     with alert_app.test_client(True) as client:
         with client.session_transaction() as sess:
@@ -136,8 +141,10 @@ def test_trigger_unconfirmed_email(sqlite_connection, alert_app, trigger_publish
         rows = list(dict(row) for row in sent_alert_results)
         assert len(rows) == 0
 
+    send_alert.assert_not_called()
 
-def test_trigger_initial_send(sqlite_connection, alert_app, trigger_confirmed_email, trigger_published_dt):
+
+def test_trigger_initial_send(sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt):
     """Test sending the first alert email to a recipient that has never received one."""
     with alert_app.test_client(True) as client:
         with client.session_transaction() as sess:
@@ -169,8 +176,10 @@ def test_trigger_initial_send(sqlite_connection, alert_app, trigger_confirmed_em
         rows = list(dict(row) for row in contents)
         assert rows == [{'send_id': 1, 'lead_id': 6933}]
 
+    send_alert.assert_called()
 
-def test_trigger_no_contents(sqlite_connection, alert_app, trigger_confirmed_email):
+
+def test_trigger_no_contents(sqlite_connection, send_alert, alert_app, trigger_confirmed_email):
     """Test sending the alert email when there is no new content. It should record """
     with alert_app.test_client(True) as client:
         with client.session_transaction() as sess:
@@ -194,12 +203,14 @@ def test_trigger_no_contents(sqlite_connection, alert_app, trigger_confirmed_ema
         rows = list(dict(row) for row in sent_alert_results)
         assert len(rows) == 0
 
+    send_alert.assert_not_called()
 
-def test_trigger_too_recent(sqlite_connection, alert_app, trigger_published_dt, trigger_confirmed_email):
+
+def test_trigger_too_recent(sqlite_connection, send_alert, alert_app, trigger_published_dt, trigger_confirmed_email):
     """Test sending the alert email when the last trigger was too recent."""
     # do the initial send
     test_trigger_initial_send(
-        sqlite_connection, alert_app, trigger_confirmed_email, trigger_published_dt)
+        sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt)
 
     # trigger again
     with alert_app.test_client(False) as client:
@@ -211,17 +222,19 @@ def test_trigger_too_recent(sqlite_connection, alert_app, trigger_published_dt, 
         rows = list(dict(row) for row in sent_alert_results)
         assert len(rows) == 1
 
+    send_alert.assert_called()
+
 
 class NextWeek:
     def now(self):
         return datetime.now() + timedelta(weeks=1)
 
 
-def test_trigger_next_email_no_new(sqlite_connection, alert_app, trigger_confirmed_email, trigger_published_dt, mocker):
+def test_trigger_next_email_no_new(sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt, mocker):
     """Test sending the alert email when the last trigger was in the previous period and there are no new items."""
     # send previous email
     test_trigger_initial_send(
-        sqlite_connection, alert_app, trigger_confirmed_email, trigger_published_dt)
+        sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt)
 
     mocker.patch('api.alerts.datetime', NextWeek())
 
@@ -236,12 +249,14 @@ def test_trigger_next_email_no_new(sqlite_connection, alert_app, trigger_confirm
         rows = list(dict(row) for row in sent_alert_results)
         assert len(rows) == 1
 
+    send_alert.assert_called_once()
 
-def test_trigger_next_email_with_new(sqlite_connection, alert_app, trigger_confirmed_email, trigger_published_dt, mocker):
+
+def test_trigger_next_email_with_new(sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt, mocker):
     """Test sending the alert email when the last trigger was in the previous period and there are new items."""
     # send previous email
     test_trigger_initial_send(
-        sqlite_connection, alert_app, trigger_confirmed_email, trigger_published_dt)
+        sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt)
 
     with sqlite_connection.connect() as conn:
         update_published_dt(conn, datetime.now() + timedelta(days=2), 1420)
@@ -266,3 +281,5 @@ def test_trigger_next_email_with_new(sqlite_connection, alert_app, trigger_confi
         rows = list(dict(row) for row in contents)
         assert rows == [{'send_id': 1, 'lead_id': 6933},
                         {'send_id': 2, 'lead_id': 1420}]
+
+    assert send_alert.call_count == 2

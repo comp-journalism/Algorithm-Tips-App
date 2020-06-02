@@ -25,7 +25,7 @@ def init_keys():
     current_app.secret_key = cfg.get('flask', 'session-key')
 
 
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, template_folder="templates")
 CORS(app, supports_credentials='DEBUG' in environ)
 
 app.register_blueprint(flags_bp)

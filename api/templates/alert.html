@@ -14,11 +14,11 @@
         <tbody>
             <tr>
                 <td>Filter:</td>
-                <td><em>None</em></td>
+                <td>{% if filter_text %}{{ filter_text }}{% else %}<em>None</em>{% endif %}</td>
             </tr>
             <tr>
                 <td>Sources:</td>
-                <td><em>Any</em></td>
+                <td>{% if source_text %}{{ source_text }}{% else %}<em>Any</em>{% endif %}</td>
             </tr>
         </tbody>
     </table>
@@ -29,27 +29,26 @@
             </tr>
         </thead>
         <tbody>
+            {% for lead in leads %}
             <tr>
-                <td><a href="#">Lead 1</a></td>
+                <td><a href="{{ lead.link }}">{{ lead.name }}</a></td>
             </tr>
-            <tr>
-                <td><a href="#">Lead 2</a></td>
-            </tr>
-            <tr>
-                <td><a href="#">Lead 3</a></td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
     </p>
     <p>
-        Click <a href="#">here</a> to see all 9999 new leads.
+        Click <a href="{{ links.alert }}">here</a> to see all 9999 new leads.
     </p>
     <p style="font-size:small;">
-        <em><a href="#">Delete This Alert</a> &middot; <a href="#">Unsubscribe</a> &middot; <a href="#">Contact</a></em>
+        <em><a href="{{ links.delete }}">Delete This Alert</a> &middot; <a
+                href="{{ links.unsubscribe }}">Unsubscribe</a> &middot; <a
+                href="http://algorithmtips.org/about/">Contact</a></em>
     </p>
     <p style="font-size:small;">
         <em>You are receiving this email because you signed up for an alert from the AlgorithmTips Database. If this was
-            done in error, click <a href="#">here</a> to remove yourself from the database and prevent all future
+            done in error, click <a href="{{ links.blacklist }}">here</a> to remove yourself from the database and
+            prevent all future
             emails.</em>
     </p>
 </body>

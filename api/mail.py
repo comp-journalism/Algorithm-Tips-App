@@ -2,14 +2,15 @@ from configparser import ConfigParser
 from datetime import datetime, timedelta
 
 import boto3
-from flask import current_app
-from itsdangerous import URLSafeTimedSerializer
+from flask import current_app, render_template
+from itsdangerous import URLSafeTimedSerializer, URLSafeSerializer
 from sqlalchemy.sql import and_, select
 
 from api.errors import ConfirmationPendingError
 from api.models import pending_confirmations, users
 
 CHARSET = 'UTF-8'
+BASE_URL = 'http://db.algorithmtips.org'
 
 
 class MailSingleton:
@@ -124,4 +125,68 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
         return False
     else:
         print('sent confirmation email to ' + email)
+        return True
+
+
+def format_source(alert):
+    KEYS = ['federal', 'regional', 'local']
+    result = ''
+    any_count = 0
+    for key in KEYS:
+        if key not in alert or alert[key] is None:
+            result += 'Any ' + key.capitalize()
+            any_count += 1
+        elif alert[key] == 'exclude':
+            result += 'No ' + key.capitalize()
+        else:
+            result += alert[key]
+
+    if any_count == len(KEYS):
+        return None
+    else:
+        return result
+
+
+def render_alert(alert, leads):
+    signer = URLSafeSerializer(current_app.secret_key)
+    alert_token = signer.dumps(alert['alert_id'], salt='public_alert_token')
+    private_token = signer.dumps(alert['alert_id'], salt='private_alert_token')
+    return render_template('alert.html',
+                           filter_text=alert['filter'],
+                           source_text=format_source(alert),
+                           leads=leads,
+                           links={
+                               'alert': f"{BASE_URL}/alert?token={alert_token}",
+                               'delete': f"{BASE_URL}/delete-alert?token={private_token}",
+                               'unsubscribe': f"{BASE_URL}/unsubscribe-alert?token={private_token}",
+                               'blacklist': f"{BASE_URL}/block?token={private_token}"
+                           })
+
+
+def send_alert(alert, content):
+    try:
+        mail = MailSingleton.get_mailer()
+        mail.send_email(
+            Destination={
+                'ToAddresses': [alert['recipient']]
+            },
+            Message={
+                'Subject': {
+                    'Charset': CHARSET,
+                    'Data': 'Algorithm Tips: New Leads Match Your Alert'
+                },
+                'Body': {
+                    'Html': {
+                        'Charset': CHARSET,
+                        'Data': content,
+                    }
+                }
+            },
+            Source=MailSingleton.get_sender()
+        )
+    except Exception as e:
+        print(e)
+        return False
+    else:
+        print('sent alert email to ' + alert['recipient'])
         return True

@@ -1,6 +1,7 @@
 import re
 from configparser import ConfigParser
 from datetime import datetime, timedelta
+from itertools import islice
 
 import flask
 from flask import Blueprint, current_app, request
@@ -9,7 +10,7 @@ from sqlalchemy.sql import and_, func, not_, select, tuple_
 from api.auth import login_required
 from api.db import engine
 from api.errors import ConfirmationPendingError, abort_json
-from api.mail import send_confirmation
+from api.mail import send_confirmation, render_alert, BASE_URL, send_alert
 from api.models import alerts as alerts_
 from api.models import (annotated_leads, confirmed_emails, leads,
                         sent_alert_contents, sent_alerts, users)
@@ -288,8 +289,6 @@ def trigger_alerts():
                     print(f"Skipping alert {row['id']}. No new results.")
                     continue
 
-                # TODO render template with up to the first 3 leads
-
                 # record alert sending
                 sent_alert = {
                     k: v
@@ -299,6 +298,11 @@ def trigger_alerts():
 
                 sent_alert['alert_id'] = row['id']
                 sent_alert['send_date'] = datetime.now()
+
+                template = render_alert(sent_alert, [{
+                    'name': lead['name'],
+                    'link': f'{BASE_URL}/lead/{lead["id"]}'
+                } for lead in islice(lead_results, 3)])
 
                 query = sent_alerts.insert().values(  # pylint: disable=no-value-for-parameter
                     **sent_alert)
@@ -316,6 +320,6 @@ def trigger_alerts():
                 con.execute(sent_alert_contents.insert(  # pylint: disable=no-value-for-parameter
                 ), *sent_contents)
 
-                # TODO send email
+                send_alert(sent_alert, template)
 
     return {'status': 'ok'}
