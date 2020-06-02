@@ -141,10 +141,7 @@ def create_alert(uid):
         data = request.get_json()
         assert EMAIL_REGEX.fullmatch(data['recipient']) is not None
     except:
-        return flask.abort(400, {
-            'status': 'error',
-            'reason': 'Unable to read or validate alert data'
-        })
+        return abort_json(400, 'Unable to read or validate alert data')
 
     with engine().begin() as con:
         # before beginning, check if this email belongs to another existing users
@@ -227,11 +224,11 @@ def min_date_threshold(kind, fudge=timedelta(hours=6)):
 
     `fudge` gives a small error margin (default: 6 hours) to cope with clock and/or cron skew."""
     if kind == 0:
-        return datetime.now() - timedelta(weeks=1) - fudge
+        return datetime.now() - timedelta(weeks=1) + fudge
     elif kind == 1:
-        return datetime.now() - timedelta(days=10) - fudge
+        return datetime.now() - timedelta(days=10) + fudge
     elif kind == 2:
-        return datetime.now() - timedelta(days=30) - fudge
+        return datetime.now() - timedelta(days=30) + fudge
 
 
 @alerts.route('/trigger', methods=('POST',))
@@ -260,6 +257,8 @@ def trigger_alerts():
             row = dict(result)
             if row['last_sent'] is not None and row['last_sent'] >= min_date_threshold(row['frequency']):
                 # has been sent more recently than we allow
+                print(
+                    f"Last trigger for {row['id']} is too recent ({row['last_sent']}, {min_date_threshold(row['frequency'])})")
                 continue
             with con.begin():
                 query = build_filtered_lead_selection(
@@ -279,8 +278,9 @@ def trigger_alerts():
                 )
 
                 lead_results = con.execute(query)
+                lead_results = list(dict(row) for row in lead_results)
 
-                if lead_results.rowcount == 0:
+                if len(lead_results) == 0:
                     print(f"Skipping alert {row['id']}. No new results.")
                     continue
 
@@ -290,7 +290,7 @@ def trigger_alerts():
                 sent_alert = {
                     k: v
                     for k, v in row.items()
-                    if k != 'id'
+                    if k not in ['id', 'last_sent']
                 }
 
                 sent_alert['alert_id'] = row['id']

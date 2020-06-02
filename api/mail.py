@@ -7,26 +7,40 @@ from sqlalchemy.sql import select, and_, not_
 from datetime import datetime, timedelta
 import boto3
 
-mail = None
 CHARSET = 'UTF-8'
-SENDER = None
+
+
+class MailSingleton:
+    __mail = None
+    __sender = None
+
+    @classmethod
+    def init(cls):
+        config = ConfigParser()
+        config.read('keys.conf')
+
+        region = config.get('mail', 'ses-region')
+        aws_access_key_id = config.get('mail', 'ses-access-key-id')
+        aws_secret_access_key = config.get('mail', 'ses-secret-access-key')
+
+        cls.__mail = boto3.client('ses', region_name=region,
+                                  aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+
+        cls.__sender = config.get('mail', 'sender-address')
+
+    @classmethod
+    def get_mailer(cls):
+        assert cls.__mail is not None
+        return cls.__mail
+
+    @classmethod
+    def get_sender(cls):
+        assert cls.__sender is not None
+        return cls.__sender
 
 
 def init_mail():
-    """Set up flask-mail with settings from keys.conf"""
-    global mail
-    global SENDER
-    config = ConfigParser()
-    config.read('keys.conf')
-
-    region = config.get('mail', 'ses-region')
-    aws_access_key_id = config.get('mail', 'ses-access-key-id')
-    aws_secret_access_key = config.get('mail', 'ses-secret-access-key')
-
-    mail = boto3.client('ses', region_name=region,
-                        aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-
-    SENDER = config.get('mail', 'sender-address')
+    MailSingleton.init()
 
 
 def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
@@ -80,6 +94,7 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
 
     # send a confirmation mail
     try:
+        mail = MailSingleton.get_mailer()
         mail.send_email(
             Destination={
                 'ToAddresses': [email]

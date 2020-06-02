@@ -16,13 +16,8 @@ from api.alerts import alerts, init_alerts
 import json
 from os import environ
 
-SOURCES = None
-
-
-def load_sources():
-    global SOURCES
-    with open('data/sources.json') as f:
-        SOURCES = json.load(f)
+with open('data/sources.json') as f:
+    SOURCES = json.load(f)
 
 
 app = flask.Flask(__name__)
@@ -37,7 +32,6 @@ app.register_blueprint(flags_bp)
 app.register_blueprint(auth)
 app.register_blueprint(alerts)
 app.before_first_request(init_pool)
-app.before_first_request(load_sources)
 app.before_first_request(init_alerts)
 
 LEAD_FIELDS = [

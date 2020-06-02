@@ -1,28 +1,34 @@
 import configparser
 from sqlalchemy import create_engine
 
-global_pool = None
+
+class PoolSingleton:
+    __engine = None
+
+    @classmethod
+    def init(cls):
+        # Load KEYS.config file
+        config = configparser.ConfigParser()
+        config.read("keys.conf")
+
+        # AWS Database information
+        aws_username = config.get("AWSDatabaseConfig", "username")
+        aws_password = config.get("AWSDatabaseConfig", "password")
+        aws_host = config.get("AWSDatabaseConfig", "host")
+        aws_database = config.get("AWSDatabaseConfig", "database")
+
+        cls.__engine = create_engine(
+            f'mysql+pymysql://{aws_username}:{aws_password}@{aws_host}/{aws_database}', echo=True)
+
+    @classmethod
+    def get_engine(cls):
+        assert cls.__engine is not None
+        return cls.__engine
 
 
 def init_pool():
-    global global_pool
-    if global_pool is not None:
-        return
-
-    # Load KEYS.config file
-    config = configparser.ConfigParser()
-    config.read("keys.conf")
-
-    # AWS Database information
-    aws_username = config.get("AWSDatabaseConfig", "username")
-    aws_password = config.get("AWSDatabaseConfig", "password")
-    aws_host = config.get("AWSDatabaseConfig", "host")
-    aws_database = config.get("AWSDatabaseConfig", "database")
-
-    global_pool = create_engine(
-        f'mysql+pymysql://{aws_username}:{aws_password}@{aws_host}/{aws_database}', echo=True)
+    return PoolSingleton.init()
 
 
 def engine():
-    global global_pool
-    return global_pool
+    return PoolSingleton.get_engine()
