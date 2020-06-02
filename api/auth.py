@@ -5,7 +5,7 @@ from api.db import engine
 from api.models import users, pending_confirmations, confirmed_emails
 from api.errors import abort_json, NoSuchConfirmation
 from sqlalchemy.sql import select, and_
-from flask import request, abort, Blueprint, session, current_app, jsonify
+from flask import request, abort, Blueprint, session, current_app
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 from functools import wraps
 

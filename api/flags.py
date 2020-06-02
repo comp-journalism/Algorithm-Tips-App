@@ -2,7 +2,7 @@ import flask
 from flask import Blueprint, request
 from sqlalchemy.sql import select, text, and_
 from sqlalchemy.exc import IntegrityError
-from api.models import users, flags as flags_, leads
+from api.models import flags as flags_, leads
 from api.db import engine
 from api.auth import login_required
 
@@ -18,7 +18,7 @@ def list_flags(uid):
 
         if not isinstance(ids, list):
             raise ValueError()
-    except:
+    except ValueError:
         flask.abort(400)
 
     if len(ids) == 0:

@@ -3,7 +3,7 @@ from itsdangerous import URLSafeTimedSerializer
 from configparser import ConfigParser
 from api.models import pending_confirmations, users
 from api.errors import ConfirmationPendingError
-from sqlalchemy.sql import select, and_, not_
+from sqlalchemy.sql import select, and_
 from datetime import datetime, timedelta
 import boto3
 
@@ -81,7 +81,7 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
     text_body = f"""An alert was created with this email address on the Algorithm Tips (http://algorithmtips.org) website.
 
     If you took this action, click here to confirm your email address: {link}
-    
+
     If you did not, simply ignore this email.
     """
 
@@ -115,7 +115,7 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
                     }
                 }
             },
-            Source=SENDER
+            Source=MailSingleton.get_sender()
         )
     except Exception as e:
         print(e)

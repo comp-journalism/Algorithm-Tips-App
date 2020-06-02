@@ -3,10 +3,10 @@ import flask
 from configparser import ConfigParser
 from datetime import datetime, timedelta
 from flask import Blueprint, request, current_app
-from sqlalchemy.sql import select, and_, text, not_, func, tuple_
+from sqlalchemy.sql import select, and_, not_, func, tuple_
 from api.db import engine
 from api.errors import abort_json, ConfirmationPendingError
-from api.models import alerts as alerts_, users, pending_confirmations, confirmed_emails, sent_alert_contents, sent_alerts, leads, annotated_leads
+from api.models import alerts as alerts_, users, confirmed_emails, sent_alert_contents, sent_alerts, leads, annotated_leads
 from api.auth import login_required
 from api.mail import send_confirmation
 
@@ -71,7 +71,7 @@ def update_alert(uid, alert_id):
     try:
         data = request.get_json()
         assert EMAIL_REGEX.fullmatch(data['recipient']) is not None
-    except:
+    except AssertionError:
         return flask.abort(400, {
             'status': 'error',
             'reason': 'Unable to read or validate alert data'
@@ -140,7 +140,7 @@ def create_alert(uid):
     try:
         data = request.get_json()
         assert EMAIL_REGEX.fullmatch(data['recipient']) is not None
-    except:
+    except AssertionError:
         return abort_json(400, 'Unable to read or validate alert data')
 
     with engine().begin() as con:

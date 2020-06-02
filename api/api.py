@@ -1,15 +1,14 @@
-import cProfile
 from math import ceil
 import flask
-from flask import request, send_from_directory, send_file
+from flask import request
 from flask_cors import CORS
 import configparser
 from sqlalchemy.sql import select, and_, text
 
 from api.db import init_pool, engine
 from api.mail import init_mail
-from api.models import users, annotated_leads, leads, crowd_ratings, flags
-from api.auth import signup, parse_token, auth, login_used, login_required
+from api.models import annotated_leads, leads, crowd_ratings, flags
+from api.auth import auth, login_used, login_required
 from api.flags import flags as flags_bp
 from api.alerts import alerts, init_alerts
 
@@ -66,7 +65,8 @@ def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], flagged_only=Fa
 
     query = select(fields).select_from(join)
 
-    return query.where(and_(annotated_leads.c.is_published == True, *where))
+    # E712 asks for 'is True' but this is not actually a bool, just bool-y
+    return query.where(and_(annotated_leads.c.is_published == True, *where))  # noqa: E712
 
 
 def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None, fields=LEAD_FIELDS, where=[], flagged_only=False):
