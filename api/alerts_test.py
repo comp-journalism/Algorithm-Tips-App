@@ -1,12 +1,15 @@
-from api import alerts
+import shutil
+import tempfile
+from datetime import datetime, timedelta
+
+import pytest
+from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.sql import select
-from api.models import sent_alerts, sent_alert_contents, annotated_leads, confirmed_emails
-from flask import Flask
-from datetime import datetime, timedelta
-import pytest
-import tempfile
-import shutil
+
+from api import alerts
+from api.models import (annotated_leads, confirmed_emails, sent_alert_contents,
+                        sent_alerts)
 
 
 @pytest.fixture

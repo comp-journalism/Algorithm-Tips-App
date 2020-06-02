@@ -1,11 +1,13 @@
+from configparser import ConfigParser
+from datetime import datetime, timedelta
+
+import boto3
 from flask import current_app
 from itsdangerous import URLSafeTimedSerializer
-from configparser import ConfigParser
-from api.models import pending_confirmations, users
+from sqlalchemy.sql import and_, select
+
 from api.errors import ConfirmationPendingError
-from sqlalchemy.sql import select, and_
-from datetime import datetime, timedelta
-import boto3
+from api.models import pending_confirmations, users
 
 CHARSET = 'UTF-8'
 

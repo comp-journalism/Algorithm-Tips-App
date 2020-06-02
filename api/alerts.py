@@ -1,14 +1,18 @@
 import re
-import flask
 from configparser import ConfigParser
 from datetime import datetime, timedelta
-from flask import Blueprint, request, current_app
-from sqlalchemy.sql import select, and_, not_, func, tuple_
-from api.db import engine
-from api.errors import abort_json, ConfirmationPendingError
-from api.models import alerts as alerts_, users, confirmed_emails, sent_alert_contents, sent_alerts, leads, annotated_leads
+
+import flask
+from flask import Blueprint, current_app, request
+from sqlalchemy.sql import and_, func, not_, select, tuple_
+
 from api.auth import login_required
+from api.db import engine
+from api.errors import ConfirmationPendingError, abort_json
 from api.mail import send_confirmation
+from api.models import alerts as alerts_
+from api.models import (annotated_leads, confirmed_emails, leads,
+                        sent_alert_contents, sent_alerts, users)
 
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 

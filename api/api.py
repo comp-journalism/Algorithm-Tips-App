@@ -1,19 +1,19 @@
-from math import ceil
-import flask
-from flask import request, current_app
-from flask_cors import CORS
 import configparser
-from sqlalchemy.sql import select, and_, text
-
-from api.db import init_pool, engine
-from api.mail import init_mail
-from api.models import annotated_leads, leads, crowd_ratings, flags
-from api.auth import auth, login_used, login_required
-from api.flags import flags as flags_bp
-from api.alerts import alerts, init_alerts
-
 import json
+from math import ceil
 from os import environ
+
+import flask
+from flask import current_app, request
+from flask_cors import CORS
+from sqlalchemy.sql import and_, select, text
+
+from api.alerts import alerts, init_alerts
+from api.auth import auth, login_required, login_used
+from api.db import engine, init_pool
+from api.flags import flags as flags_bp
+from api.mail import init_mail
+from api.models import annotated_leads, crowd_ratings, flags, leads
 
 with open('data/sources.json') as f:
     SOURCES = json.load(f)

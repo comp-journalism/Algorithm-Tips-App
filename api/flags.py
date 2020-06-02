@@ -1,10 +1,12 @@
 import flask
 from flask import Blueprint, request
-from sqlalchemy.sql import select, text, and_
 from sqlalchemy.exc import IntegrityError
-from api.models import flags as flags_, leads
-from api.db import engine
+from sqlalchemy.sql import and_, select, text
+
 from api.auth import login_required
+from api.db import engine
+from api.models import flags as flags_
+from api.models import leads
 
 flags = Blueprint('flags', __name__, url_prefix='/flag')
 

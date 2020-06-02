@@ -1,13 +1,15 @@
-from google.oauth2 import id_token
-from werkzeug.exceptions import BadRequest
-from google.auth.transport import requests
-from api.db import engine
-from api.models import users, pending_confirmations, confirmed_emails
-from api.errors import abort_json, NoSuchConfirmation
-from sqlalchemy.sql import select, and_
-from flask import request, abort, Blueprint, session, current_app
-from itsdangerous import URLSafeTimedSerializer, BadSignature
 from functools import wraps
+
+from flask import Blueprint, abort, current_app, request, session
+from google.auth.transport import requests
+from google.oauth2 import id_token
+from itsdangerous import BadSignature, URLSafeTimedSerializer
+from sqlalchemy.sql import and_, select
+from werkzeug.exceptions import BadRequest
+
+from api.db import engine
+from api.errors import NoSuchConfirmation, abort_json
+from api.models import confirmed_emails, pending_confirmations, users
 
 # TODO: move to credentials file. same with frontend
 CLIENT_ID = "741161465779-iarif5gv7i2shgk80gmleg1trdtpb4hp.apps.googleusercontent.com"
