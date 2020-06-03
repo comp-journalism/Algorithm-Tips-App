@@ -1,0 +1,20 @@
+[AWSDatabaseConfig]
+username = # mysql username
+password = # mysql password
+host = # mysql host
+database = # mysql DB
+
+[flask]
+# a SECRET UTF8 string used to sign the session and tokens used for authentication.
+# see here for instructions on initialization: https://flask.palletsprojects.com/en/1.1.x/quickstart/#sessions
+session-key = 
+
+[mail]
+sender-address=notification@algorithmtips.org
+ses-region= # SES Region ID
+ses-access-key-id= # SES Access Key ID
+ses-secret-access-key= # SES Secret Access Key
+
+[alert-trigger]
+# whitelist of IP addresses to allow alert triggers from. By default, only localhost is allowed
+trigger_ip_whitelist=127.0.0.1
