@@ -38,7 +38,7 @@
     </table>
     </p>
     <p>
-        Click <a href="{{ links.alert }}">here</a> to see all 9999 new leads.
+        Click <a href="{{ links.alert }}">here</a> to see all {{ leads|length }} new leads.
     </p>
     <p style="font-size:small;">
         <em><a href="{{ links.delete }}">Delete This Alert</a> &middot; <a
@@ -47,8 +47,8 @@
     </p>
     <p style="font-size:small;">
         <em>You are receiving this email because you signed up for an alert from the AlgorithmTips Database. If this was
-            done in error, click <a href="{{ links.blacklist }}">here</a> to remove yourself from the database and
-            prevent all future
+            done in error, click <a href="{{ links.unsubscribe }}">here</a> to remove yourself from the database and
+            prevent future
             emails.</em>
     </p>
 </body>

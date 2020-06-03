@@ -151,19 +151,23 @@ def render_alert(alert, leads):
     signer = URLSafeSerializer(current_app.secret_key)
     alert_token = signer.dumps(alert['alert_id'], salt='public_alert_token')
     private_token = signer.dumps(alert['alert_id'], salt='private_alert_token')
-    return render_template('alert.html',
-                           filter_text=alert['filter'],
-                           source_text=format_source(alert),
-                           leads=leads,
-                           links={
-                               'alert': f"{BASE_URL}/alert?token={alert_token}",
-                               'delete': f"{BASE_URL}/delete-alert?token={private_token}",
-                               'unsubscribe': f"{BASE_URL}/unsubscribe-alert?token={private_token}",
-                               'blacklist': f"{BASE_URL}/block?token={private_token}"
-                           })
+    kwargs = {
+        'filter_text': alert['filter'],
+        'source_text': format_source(alert),
+        'leads': leads,
+        'links': {
+            'alert': f"{BASE_URL}/alert?token: {alert_token}",
+            'delete': f"{BASE_URL}/delete-alert?token: {private_token}",
+            'unsubscribe': f"{BASE_URL}/unsubscribe-alert?token: {private_token}",
+        }
+    }
+    html = render_template('alert.html', **kwargs)
+    text = render_template('alert.txt', **kwargs)
+
+    return (html, text)
 
 
-def send_alert(alert, content):
+def send_alert(alert, html_content, text_content):
     try:
         mail = MailSingleton.get_mailer()
         mail.send_email(
@@ -176,9 +180,13 @@ def send_alert(alert, content):
                     'Data': 'Algorithm Tips: New Leads Match Your Alert'
                 },
                 'Body': {
+                    'Text': {
+                        'Charset': CHARSET,
+                        'Data': text_content,
+                    },
                     'Html': {
                         'Charset': CHARSET,
-                        'Data': content,
+                        'Data': html_content,
                     }
                 }
             },

@@ -299,7 +299,7 @@ def trigger_alerts():
                 sent_alert['alert_id'] = row['id']
                 sent_alert['send_date'] = datetime.now()
 
-                template = render_alert(sent_alert, [{
+                templates = render_alert(sent_alert, [{
                     'name': lead['name'],
                     'link': f'{BASE_URL}/lead/{lead["id"]}'
                 } for lead in islice(lead_results, 3)])
@@ -320,6 +320,6 @@ def trigger_alerts():
                 con.execute(sent_alert_contents.insert(  # pylint: disable=no-value-for-parameter
                 ), *sent_contents)
 
-                send_alert(sent_alert, template)
+                send_alert(sent_alert, *templates)
 
     return {'status': 'ok'}
