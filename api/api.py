@@ -4,7 +4,7 @@ from math import ceil
 from os import environ
 
 import flask
-from flask import current_app, request
+from flask import request
 from flask_cors import CORS
 from sqlalchemy.sql import and_, select, text
 
@@ -19,20 +19,24 @@ with open('data/sources.json') as f:
     SOURCES = json.load(f)
 
 
-def init_keys():
-    cfg = configparser.ConfigParser()
-    cfg.read('keys.conf')
-    current_app.secret_key = cfg.get('flask', 'session-key')
+def init_keys(app):
+    try:
+        cfg = configparser.ConfigParser()
+        cfg.read('keys.conf')
+        app.secret_key = cfg.get('flask', 'session-key')
+    except Exception as e:
+        print(f'Unable to read keys.conf: {e}. Sessions will be disabled.')
 
 
 app = flask.Flask(__name__, template_folder="templates")
 CORS(app, supports_credentials='DEBUG' in environ)
 
+init_keys(app)
+
 app.register_blueprint(flags_bp)
 app.register_blueprint(auth)
 app.register_blueprint(alerts)
 app.before_first_request(init_mail)
-app.before_first_request(init_keys)
 app.before_first_request(init_pool)
 app.before_first_request(init_alerts)
 
