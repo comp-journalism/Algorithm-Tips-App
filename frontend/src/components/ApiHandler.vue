@@ -23,7 +23,12 @@ export default {
     loadingTitle: String,
     successTitle: String,
     errorTitle: String,
-    request: Function
+    request: {
+      type: Function,
+      default: async () => {
+        throw Error("no request function provided");
+      }
+    }
   },
   data() {
     return {
@@ -48,17 +53,22 @@ export default {
       }
     }
   },
-  async mounted() {
-    try {
-      await this.request();
-      this.status = "success";
-    } catch (err) {
-      this.status = "error";
-      if (err.response) {
-        console.log(err.response.data);
-        this.error = err.response.data.reason;
+  mounted() {
+    this.$nextTick(async () => {
+      try {
+        console.log(this, this.request);
+        await this.request();
+        this.status = "success";
+      } catch (err) {
+        this.status = "error";
+        if (err.response) {
+          console.error(err.response.data);
+          this.error = err.response.data.reason;
+        } else {
+          console.error(err);
+        }
       }
-    }
+    });
   }
 };
 </script>

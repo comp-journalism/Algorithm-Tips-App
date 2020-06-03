@@ -23,12 +23,14 @@ export default {
   components: {
     ApiHandler
   },
-  request() {
-    return axios.get(api_url("auth/confirm"), {
-      params: {
-        token: this.token
-      }
-    });
+  methods: {
+    request() {
+      return axios.get(api_url("auth/confirm"), {
+        params: {
+          token: this.token
+        }
+      });
+    }
   }
 };
 </script>

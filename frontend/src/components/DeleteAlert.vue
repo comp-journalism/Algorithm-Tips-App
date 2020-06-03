@@ -25,12 +25,14 @@ export default {
   components: {
     ApiHandler
   },
-  request() {
-    return axios.get(api_url("alert/delete"), {
-      params: {
-        token: this.token
-      }
-    });
+  methods: {
+    request() {
+      return axios.get(api_url("alert/delete"), {
+        params: {
+          token: this.token
+        }
+      });
+    }
   }
 };
 </script>
