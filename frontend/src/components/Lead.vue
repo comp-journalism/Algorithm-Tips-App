@@ -186,13 +186,9 @@ export default {
       const orgs = JSON.parse(this.lead.organizations) || {};
 
       const merged = Object.entries(people).concat(Object.entries(orgs));
-      const max_count = Math.max(...merged.map(([, count]) => count));
-      const filtered = merged.filter(
-        ([, count]) => count > 1 && count > max_count / 2
-      );
-      filtered.sort(([, a], [, b]) => b - a);
+      merged.sort(([, a], [, b]) => b - a);
 
-      return filtered.map(([name]) => name);
+      return merged.map(([name]) => name);
     },
     discovered() {
       const dt = moment(this.lead.discovered_dt);

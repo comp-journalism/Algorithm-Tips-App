@@ -19,7 +19,7 @@ exports[`Lead matches the snapshot 1`] = `
         <dt class="col-sm-3 text-right">Main Topics</dt>
         <dd class="col-sm-9">Health</dd>
         <dt class="col-sm-3 text-right">People &amp; Organizations</dt>
-        <dd class="col-sm-9">CMS</dd>
+        <dd class="col-sm-9">CMS, Refer, State, State Ombudsman</dd>
       </dl>
       <h5>Crowd Ratings</h5>
     </b-card-body-stub>
