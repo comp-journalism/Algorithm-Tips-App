@@ -3,5 +3,5 @@ New leads matching your alert have been added to the AlgorithmTips Database at h
 Click here to see all {{ leads|length }} new leads: {{ links.alert }}
 
 Delete This Alert: {{ links.delete }}
-Unsubscribe: {{ links.unsubscribe }}
+Unsubscribe From All Alerts: {{ links.unsubscribe }}
 Contact: http://algorithmtips.org/about/

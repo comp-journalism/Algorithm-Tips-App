@@ -50,13 +50,12 @@ snapshots['test_alert_render 1'] = '''<!DOCTYPE html>
         Click <a href="http://db.algorithmtips.org/alert?token=MQ.w-J-fKwgPT3AIxF7etDyRq_kcGY">here</a> to see all 1 new leads.
     </p>
     <p style="font-size:small;">
-        <em><a href="http://db.algorithmtips.org/delete-alert?token=MQ.VyNVOrwjcabnrAHymEE-sPTUAuU">Delete This Alert</a> &middot; <a
-                href="http://db.algorithmtips.org/unsubscribe?token=MQ.VyNVOrwjcabnrAHymEE-sPTUAuU">Unsubscribe</a> &middot; <a
-                href="http://algorithmtips.org/about/">Contact</a></em>
+        <em><a href="http://db.algorithmtips.org/delete-alert?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo">Delete This Alert</a> &middot; <a href="http://db.algorithmtips.org/unsubscribe?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo">Unsubscribe
+                From All Alerts</a> &middot; <a href="http://algorithmtips.org/about/">Contact</a></em>
     </p>
     <p style="font-size:small;">
         <em>You are receiving this email because you signed up for an alert from the AlgorithmTips Database. If this was
-            done in error, click <a href="http://db.algorithmtips.org/unsubscribe?token=MQ.VyNVOrwjcabnrAHymEE-sPTUAuU">here</a> to remove yourself from the database and
+            done in error, click <a href="http://db.algorithmtips.org/unsubscribe?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo">here</a> to remove yourself from the database and
             prevent future
             emails.</em>
     </p>
@@ -68,6 +67,6 @@ snapshots['test_alert_render 2'] = '''New leads matching your alert have been ad
 
 Click here to see all 1 new leads: http://db.algorithmtips.org/alert?token=MQ.w-J-fKwgPT3AIxF7etDyRq_kcGY
 
-Delete This Alert: http://db.algorithmtips.org/delete-alert?token=MQ.VyNVOrwjcabnrAHymEE-sPTUAuU
-Unsubscribe: http://db.algorithmtips.org/unsubscribe?token=MQ.VyNVOrwjcabnrAHymEE-sPTUAuU
+Delete This Alert: http://db.algorithmtips.org/delete-alert?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo
+Unsubscribe From All Alerts: http://db.algorithmtips.org/unsubscribe?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo
 Contact: http://algorithmtips.org/about/'''

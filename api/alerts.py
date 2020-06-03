@@ -2,6 +2,7 @@ import re
 from configparser import ConfigParser
 from datetime import datetime, timedelta
 from itertools import islice
+from itsdangerous import BadSignature
 
 import flask
 from flask import Blueprint, current_app, request
@@ -10,7 +11,7 @@ from sqlalchemy.sql import and_, func, not_, select, tuple_
 from api.auth import login_required
 from api.db import engine
 from api.errors import ConfirmationPendingError, abort_json
-from api.mail import send_confirmation, render_alert, BASE_URL, send_alert
+from api.mail import send_confirmation, render_alert, BASE_URL, send_alert, read_private_alert_token
 from api.models import alerts as alerts_
 from api.models import (annotated_leads, confirmed_emails, leads,
                         sent_alert_contents, sent_alerts, users)
@@ -113,6 +114,57 @@ def delete_alert(uid, alert_id):
             return flask.abort(404)
 
         return {'status': 'ok'}
+
+
+@alerts.route('/delete')
+def delete_alert_via_link():
+    token = request.args.get('token', None)
+    if token is None:
+        return abort_json(400, 'Missing token')
+
+    try:
+        contents = read_private_alert_token(token)
+        with engine().begin() as con:
+            send_query = sent_alerts.select().where(and_(sent_alerts.c.id == contents['send'], sent_alerts.c.user_id == contents['user']))
+            res = con.execute(send_query)
+            sent = res.fetchone()
+            # test (sqlite) database doesn't support CTEs on DELETEs so rather
+            # than have this untested we're just going to use 2 queries. this
+            # endpoint shouldn't be hit often so this cost should be low
+            query = alerts_.delete().where(alerts_.c.id == sent['alert_id'])
+            res = con.execute(query)
+
+            if res.rowcount == 0:
+                return abort_json(404, 'No such alert')
+    except BadSignature:
+        return abort_json(400, 'Invalid token')
+    return {'status': 'ok'}
+
+
+@alerts.route('/unsubscribe')
+def unsubscribe_all_alerts():
+    token = request.args.get('token', None)
+    if token is None:
+        return abort_json(400, 'Missing token')
+
+    try:
+        contents = read_private_alert_token(token)
+        with engine().begin() as con:
+            send_query = sent_alerts.select().where(and_(sent_alerts.c.id == contents['send'], sent_alerts.c.user_id == contents['user']))
+            res = con.execute(send_query)
+            sent = res.fetchone()
+
+            # see note in delete_alert_via_link
+            query = confirmed_emails.delete().where(confirmed_emails.c.email == sent['recipient'])
+            res = con.execute(query)
+            query = alerts_.delete().where(alerts_.c.recipient == sent['recipient'])
+            res = con.execute(query)
+
+            if res.rowcount == 0:
+                return abort_json(404, 'No such alert')
+    except BadSignature:
+        return abort_json(400, 'Invalid token')
+    return {'status': 'ok'}
 
 
 @alerts.route('/list', methods=('GET',))
@@ -299,17 +351,19 @@ def trigger_alerts():
                 sent_alert['alert_id'] = row['id']
                 sent_alert['send_date'] = datetime.now()
 
-                templates = render_alert(sent_alert, [{
-                    'name': lead['name'],
-                    'link': f'{BASE_URL}/lead/{lead["id"]}'
-                } for lead in islice(lead_results, 3)])
-
                 query = sent_alerts.insert().values(  # pylint: disable=no-value-for-parameter
                     **sent_alert)
 
                 res = con.execute(query)
 
                 send_id = res.inserted_primary_key[0]
+
+                sent_alert['send_id'] = send_id
+
+                templates = render_alert(sent_alert, [{
+                    'name': lead['name'],
+                    'link': f'{BASE_URL}/lead/{lead["id"]}'
+                } for lead in islice(lead_results, 3)])
 
                 sent_contents = [
                     {'send_id': send_id,

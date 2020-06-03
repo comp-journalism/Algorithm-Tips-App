@@ -148,10 +148,23 @@ def format_source(alert):
         return ', '.join(result)
 
 
+def get_private_alert_token(uid, send_id):
+    signer = URLSafeSerializer(current_app.secret_key)
+    return signer.dumps({
+        'user': uid,
+        'send': send_id,
+    }, salt='private_alert_token')
+
+
+def read_private_alert_token(token):
+    signer = URLSafeSerializer(current_app.secret_key)
+    return signer.loads(token, salt='private_alert_token')
+
+
 def render_alert(alert, leads):
     signer = URLSafeSerializer(current_app.secret_key)
     alert_token = signer.dumps(alert['alert_id'], salt='public_alert_token')
-    private_token = signer.dumps(alert['alert_id'], salt='private_alert_token')
+    private_token = get_private_alert_token(alert['user_id'], alert['send_id'])
     kwargs = {
         'filter_text': alert['filter'],
         'source_text': format_source(alert),

@@ -13,6 +13,8 @@ import Alerts from './components/Alerts.vue';
 import AlertBuilder from './components/AlertBuilder.vue';
 import HowThisWorks from './components/HowThisWorks.vue';
 import ConfirmEmail from './components/ConfirmEmail.vue';
+import DeleteAlert from './components/DeleteAlert.vue';
+import Unsubscribe from './components/Unsubscribe.vue';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -65,6 +67,16 @@ const router = new VueRouter({
     {
       path: '/confirm-email', component: ConfirmEmail,
       meta: { title: `Confirm Email | ${BASE_TITLE}` },
+      props: ({ query }) => ({ token: query.token }),
+    },
+    {
+      path: '/delete-alert', component: DeleteAlert,
+      meta: { title: `Delete Alert | ${BASE_TITLE}` },
+      props: ({ query }) => ({ token: query.token }),
+    },
+    {
+      path: '/unsubscribe', component: Unsubscribe,
+      meta: { title: `Unsubscribe | ${BASE_TITLE}` },
       props: ({ query }) => ({ token: query.token }),
     },
     {

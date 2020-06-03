@@ -5,12 +5,12 @@ from datetime import datetime, timedelta
 import pytest
 from flask import Flask
 from sqlalchemy import create_engine
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, and_
 
 from api import alerts
-from api.mail import render_alert
+from api.mail import render_alert, get_private_alert_token
 from api.models import (annotated_leads, confirmed_emails, sent_alert_contents,
-                        sent_alerts)
+                        sent_alerts, alerts as alerts_)
 
 
 @pytest.fixture
@@ -287,9 +287,62 @@ def test_trigger_next_email_with_new(sqlite_connection, send_alert, alert_app, t
 
 
 def test_alert_render(alert_app, snapshot):
-    ALERT = {'user_id': 1, 'federal_source': 'Federal Agency - Executive', 'regional_source': 'exclude', 'local_source': None, 'frequency': 0, 'recipient': 'test@test.net', 'filter': '', 'alert_id': 1, 'send_date': datetime(2020, 6, 3, 14, 46, 27, 817514)}
+    ALERT = {'send_id': 1, 'user_id': 1, 'federal_source': 'Federal Agency - Executive', 'regional_source': 'exclude', 'local_source': None, 'frequency': 0, 'recipient': 'test@test.net', 'filter': '', 'alert_id': 1, 'send_date': datetime(2020, 6, 3, 14, 46, 27, 817514)}
     LEADS = [{'name': "FEMA's Climate Impact Model", 'link': 'http://db.algorithmtips.org/lead/6933'}]
     with alert_app.app_context():
         (render_html, render_text) = render_alert(ALERT, LEADS)
     snapshot.assert_match(render_html)
     snapshot.assert_match(render_text)
+
+
+def test_alert_delete_via_link(sqlite_connection, alert_app, send_alert, trigger_confirmed_email, trigger_published_dt):
+    """Test that we can successfully delete an alert via the link in an email."""
+    test_trigger_initial_send(sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt)
+
+    with alert_app.app_context():
+        token = get_private_alert_token(1, 1)
+
+    with sqlite_connection.connect() as conn:
+        res = conn.execute(select([alerts_]).where(and_(alerts_.c.id == 1, alerts_.c.user_id == 1)))
+
+        assert len(list(dict(r) for r in res)) == 1
+
+    with alert_app.test_client(False) as client:
+        res = client.get(f'/alert/delete?token={token}')
+        assert res.status_code == 200
+
+    with sqlite_connection.connect() as conn:
+        res = conn.execute(select([alerts_]).where(and_(alerts_.c.id == 1, alerts_.c.user_id == 1)))
+
+        assert len(list(dict(r) for r in res)) == 0
+
+
+def test_alert_unsubscribe_via_link(sqlite_connection, alert_app, send_alert, trigger_confirmed_email, trigger_published_dt):
+    """Test that we can successfully delete an alert via the link in an email."""
+    test_trigger_initial_send(sqlite_connection, send_alert, alert_app, trigger_confirmed_email, trigger_published_dt)
+
+    with alert_app.app_context():
+        token = get_private_alert_token(1, 1)
+
+    with sqlite_connection.connect() as conn:
+        conn.execute(alerts_.insert().values(
+            recipient='test@test.net',
+            filter='test',
+            frequency=1,
+            user_id=1,
+        ))
+        res = conn.execute(select([alerts_]).where(alerts_.c.recipient == 'test@test.net'))
+
+        assert len(list(dict(r) for r in res)) == 2
+
+    with alert_app.test_client(False) as client:
+        res = client.get(f'/alert/unsubscribe?token={token}')
+        assert res.status_code == 200
+
+    with sqlite_connection.connect() as conn:
+        res = conn.execute(select([alerts_]).where(alerts_.c.recipient == 'test@test.net'))
+
+        assert len(list(dict(r) for r in res)) == 0
+
+        res = conn.execute(select([confirmed_emails]).where(confirmed_emails.c.email == 'test@test.net'))
+        assert len(list(dict(r) for r in res)) == 0
