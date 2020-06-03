@@ -38,7 +38,7 @@
     </table>
     </p>
     <p>
-        Click <a href="{{ links.alert }}">here</a> to see all {{ leads|length }} new leads.
+        Click <a href="{{ links.alert|safe }}">here</a> to see all {{ leads|length }} new leads.
     </p>
     <p style="font-size:small;">
         <em><a href="{{ links.delete }}">Delete This Alert</a> &middot; <a href="{{ links.unsubscribe }}">Unsubscribe

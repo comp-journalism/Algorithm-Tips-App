@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 from datetime import datetime, timedelta
+from urllib.parse import quote as urlencode
 
 import boto3
 from flask import current_app, render_template
@@ -148,6 +149,21 @@ def format_source(alert):
         return ', '.join(result)
 
 
+def build_db_url(alert):
+    KEYS = {
+        'filter': 'filter',
+        'federal_source': 'federal',
+        'regional_source': 'regional',
+        'local_source': 'local'
+    }
+
+    params = '&'.join(f'{value}={urlencode(alert[key])}' for key, value in KEYS.items() if key in alert and alert[key])
+    if params:
+        return f"{BASE_URL}/db?{params}"
+    else:
+        return f"{BASE_URL}/db"
+
+
 def get_private_alert_token(uid, send_id):
     signer = URLSafeSerializer(current_app.secret_key)
     return signer.dumps({
@@ -162,15 +178,13 @@ def read_private_alert_token(token):
 
 
 def render_alert(alert, leads):
-    signer = URLSafeSerializer(current_app.secret_key)
-    alert_token = signer.dumps(alert['alert_id'], salt='public_alert_token')
     private_token = get_private_alert_token(alert['user_id'], alert['send_id'])
     kwargs = {
         'filter_text': alert['filter'],
         'source_text': format_source(alert),
         'leads': leads,
         'links': {
-            'alert': f"{BASE_URL}/alert?token={alert_token}",
+            'alert': build_db_url(alert),
             'delete': f"{BASE_URL}/delete-alert?token={private_token}",
             'unsubscribe': f"{BASE_URL}/unsubscribe?token={private_token}",
         }
