@@ -5,7 +5,7 @@
     loadingTitle="Deleting Alert..."
     :request="request"
   >
-    Your alert has been deleted. You will not longer receive emails about it.
+    Your alert has been deleted. You will no longer receive emails about it.
     <template
       v-slot:error
     >There was an error while trying to delete your alert:</template>
