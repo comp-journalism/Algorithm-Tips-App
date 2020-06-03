@@ -23,7 +23,7 @@
           (<external-link class="cache-link" v-if="cache" :href="cache">Cache</external-link>)
         </div>
         <!-- prettyhtml-preserve-whitespace -->
-        <div class="found-by">Found via a search for &ldquo;<external-link :href="query_url">{{ lead.query_term }}</external-link>&rdquo; on {{ discovered }}</div>
+        <div class="found-by">Found via a search for &ldquo;<external-link :href="query_url">{{ lead.query_term }}</external-link>&rdquo; on {{ discovered }}. Published here on {{ published }}.</div>
 
         <h5>Additional Info</h5>
         <dl class="row">
@@ -196,6 +196,11 @@ export default {
     },
     discovered() {
       const dt = moment(this.lead.discovered_dt);
+
+      return dt.format("MMMM Do, YYYY");
+    },
+    published() {
+      const dt = moment(this.lead.published_dt);
 
       return dt.format("MMMM Do, YYYY");
     },

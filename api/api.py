@@ -45,6 +45,7 @@ LEAD_FIELDS = [
     annotated_leads.c.name,
     annotated_leads.c.description,
     annotated_leads.c.topic,
+    annotated_leads.c.published_dt,
     leads.c.discovered_dt,
     leads.c.query_term,
     leads.c.link,
@@ -110,7 +111,7 @@ def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None,
         uid=uid, fields=fields, where=where, flagged_only=flagged_only)
 
     if page is not None:
-        query = query.order_by(leads.c.id)\
+        query = query.order_by(annotated_leads.c.published_dt.desc())\
             .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
 
     return query
