@@ -130,22 +130,22 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
 
 def format_source(alert):
     KEYS = ['federal_source', 'regional_source', 'local_source']
-    result = ''
+    result = []
     any_count = 0
     for key in KEYS:
         display_key = key.split('_')[0].capitalize()
         if key not in alert or alert[key] is None:
-            result += 'Any ' + display_key
+            result += ['Any ' + display_key]
             any_count += 1
         elif alert[key] == 'exclude':
-            result += 'No ' + display_key
+            result += ['No ' + display_key]
         else:
-            result += alert[key]
+            result += [alert[key]]
 
     if any_count == len(KEYS):
         return None
     else:
-        return result
+        return ', '.join(result)
 
 
 def render_alert(alert, leads):
@@ -159,7 +159,7 @@ def render_alert(alert, leads):
         'links': {
             'alert': f"{BASE_URL}/alert?token={alert_token}",
             'delete': f"{BASE_URL}/delete-alert?token={private_token}",
-            'unsubscribe': f"{BASE_URL}/unsubscribe-alert?token={private_token}",
+            'unsubscribe': f"{BASE_URL}/unsubscribe?token={private_token}",
         }
     }
     html = render_template('alert.html', **kwargs)

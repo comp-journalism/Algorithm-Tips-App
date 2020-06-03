@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.sql import select
 
 from api import alerts
+from api.mail import render_alert
 from api.models import (annotated_leads, confirmed_emails, sent_alert_contents,
                         sent_alerts)
 
@@ -283,3 +284,12 @@ def test_trigger_next_email_with_new(sqlite_connection, send_alert, alert_app, t
                         {'send_id': 2, 'lead_id': 1420}]
 
     assert send_alert.call_count == 2
+
+
+def test_alert_render(alert_app, snapshot):
+    ALERT = {'user_id': 1, 'federal_source': 'Federal Agency - Executive', 'regional_source': 'exclude', 'local_source': None, 'frequency': 0, 'recipient': 'test@test.net', 'filter': '', 'alert_id': 1, 'send_date': datetime(2020, 6, 3, 14, 46, 27, 817514)}
+    LEADS = [{'name': "FEMA's Climate Impact Model", 'link': 'http://db.algorithmtips.org/lead/6933'}]
+    with alert_app.app_context():
+        (render_html, render_text) = render_alert(ALERT, LEADS)
+    snapshot.assert_match(render_html)
+    snapshot.assert_match(render_text)
