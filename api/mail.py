@@ -47,6 +47,16 @@ def init_mail():
     MailSingleton.init()
 
 
+def render_confirmation_email(confirmation_id):
+    signer = URLSafeTimedSerializer(current_app.secret_key)
+    link = f"http://db.algorithmtips.org/confirm-email?token={signer.dumps(confirmation_id, salt='confirm')}"
+
+    html = render_template('confirmation.html', link=link)
+    text = render_template('confirmation.txt', link=link)
+
+    return (html, text)
+
+
 def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
     """Sends a confirmation email via Flask-Mail, then records the pending
     confirmation in the database to prevent spamming a recipient with
@@ -76,24 +86,7 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
 
     confirmation_id = res.inserted_primary_key[0]
 
-    signer = URLSafeTimedSerializer(current_app.secret_key)
-    link = f"http://db.algorithmtips.org/confirm-email?token={signer.dumps(confirmation_id, salt='confirm')}"
-
-    print(link)
-
-    text_body = f"""An alert was created with this email address on the Algorithm Tips (http://algorithmtips.org) website.
-
-    If you took this action, click here to confirm your email address: {link}
-
-    If you did not, simply ignore this email.
-    """
-
-    html_body = f"""<p>An alert was created with this email address on the <a href="http://algorithmtips.org">Algorithm Tips</a> website.
-
-    <p>If you took this action, click <a href="{link}">here</a> to confirm your email address.</p>
-
-    <p>If you did not, simply ignore this email.</p>
-    """
+    (html_body, text_body) = render_confirmation_email(confirmation_id)
 
     # send a confirmation mail
     try:

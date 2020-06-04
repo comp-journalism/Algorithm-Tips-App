@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.sql import select, and_
 
 from api.alerts import CONFIRMATION_NOTE
-from api.mail import render_alert, get_private_alert_token
+from api.mail import get_private_alert_token
 from api.models import (annotated_leads, confirmed_emails, sent_alert_contents,
                         sent_alerts, alerts as alerts_)
 
@@ -252,15 +252,6 @@ def test_trigger_next_email_with_new(sqlite_connection, send_alert, alert_app, c
                         {'send_id': 2, 'lead_id': 1420}]
 
     assert send_alert.call_count == 2
-
-
-def test_alert_render(alert_app, snapshot):
-    ALERT = {'send_id': 1, 'user_id': 1, 'federal_source': 'Federal Agency - Executive', 'regional_source': 'exclude', 'local_source': None, 'frequency': 0, 'recipient': 'test@test.net', 'filter': '', 'alert_id': 1, 'send_date': datetime(2020, 6, 3, 14, 46, 27, 817514)}
-    LEADS = [{'name': "FEMA's Climate Impact Model", 'link': 'http://db.algorithmtips.org/lead/6933'}]
-    with alert_app.app_context():
-        (render_html, render_text) = render_alert(ALERT, LEADS)
-    snapshot.assert_match(render_html)
-    snapshot.assert_match(render_text)
 
 
 def test_alert_delete_via_link(sqlite_connection, alert_app, send_alert, confirmed_email, trigger_published_dt):

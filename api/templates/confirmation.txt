@@ -1,0 +1,5 @@
+An alert was created with this email address on the Algorithm Tips (http://algorithmtips.org) website.
+
+If you took this action, click here to confirm your email address: {{ link }}
+
+If you did not, simply ignore this email.
