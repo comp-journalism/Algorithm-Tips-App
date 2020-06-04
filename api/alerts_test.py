@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy.sql import select, and_
+from freezegun import freeze_time
 
 from api.alerts import CONFIRMATION_NOTE
 from api.mail import get_private_alert_token
@@ -307,6 +308,7 @@ def test_alert_unsubscribe_via_link(sqlite_connection, alert_app, send_alert, co
         assert len(list(dict(r) for r in res)) == 0
 
 
+@freeze_time('2020-06-04')
 def test_alert_db_link(sqlite_connection, alert_app, send_alert, confirmed_email, trigger_published_dt, snapshot):
     """Test that the DB deep link gets added to the table correctly."""
     test_trigger_initial_send(sqlite_connection, send_alert, alert_app, confirmed_email, trigger_published_dt)
