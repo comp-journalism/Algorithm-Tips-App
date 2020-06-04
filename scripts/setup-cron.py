@@ -2,9 +2,9 @@
 
 The frequency level mappings are:
 
-Weekly (every Monday)
+Weekly (every 7 days)
 Semi-Weekly (every 10 days)
-Monthly (first day of every month)
+Monthly (every 30 days)
 
 This script sets up cron triggers for each level.
 
@@ -30,7 +30,7 @@ def setup_cron():
             command=cmd('weekly'),
             comment='Weekly Alert Trigger'
         )
-        weekly.dow.on('MON')
+        weekly.day.every(7)
 
         semi = cron.new(
             command=cmd('semi-weekly'),
@@ -42,7 +42,7 @@ def setup_cron():
             command=cmd('monthly'),
             comment='Monthly Alert Trigger'
         )
-        monthly.dom.on(1)
+        monthly.day.every(30)
 
 
 def undo_cron():
