@@ -123,8 +123,10 @@ chown -R nginx:nginx /var/www
 This only needs to be done once. To initialize periodic triggers, run the following command *as root:*
 
 ```bash
-python trigger-setup.py  # Not Yet Implemented
+python scripts/setup-cron.py
 ```
+
+See the wiki for full details on the alert trigger system.
 
 ## Manually Triggering Alerts
 
