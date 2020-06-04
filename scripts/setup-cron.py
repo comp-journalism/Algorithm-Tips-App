@@ -21,7 +21,7 @@ import re
 
 
 def cmd(freq):
-    return f'curl -X POST http://localhost/api/alert/trigger?frequency={freq} > /var/log/api_trigger_{freq}.log'
+    return f'curl -X POST http://localhost/api/alert/trigger?frequency={freq} > /var/log/algotips/api_trigger_{freq}.log'
 
 
 def setup_cron():

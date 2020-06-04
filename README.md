@@ -108,7 +108,7 @@ The API will start on boot, but if you need to (re)start it manually, use the fo
 ./start-api.sh  # start the API in the background
 ```
 
-Logs for the API can be found at `/var/log/api.log`.
+Logs for the API can be found at `/var/log/algotips/api.log`.
 
 ## Deploying the Front-End
 
