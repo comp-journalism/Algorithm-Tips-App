@@ -122,7 +122,7 @@ def test_trigger_initial_send(sqlite_connection, send_alert, alert_app, confirme
         res = client.post('/alert/create', json={
             'filter': '',
             'recipient': 'test@test.net',
-            'sources': {},
+            'sources': {'local': 'exclude', 'regional': 'exclude'},
             'frequency': 0
         })
 
@@ -314,3 +314,14 @@ def test_alert_unsubscribe_via_link(sqlite_connection, alert_app, send_alert, co
 
         res = conn.execute(select([confirmed_emails]).where(confirmed_emails.c.email == 'test@test.net'))
         assert len(list(dict(r) for r in res)) == 0
+
+
+def test_alert_db_link(sqlite_connection, alert_app, send_alert, confirmed_email, trigger_published_dt, snapshot):
+    """Test that the DB deep link gets added to the table correctly."""
+    test_trigger_initial_send(sqlite_connection, send_alert, alert_app, confirmed_email, trigger_published_dt)
+
+    with sqlite_connection.connect() as conn:
+        res = conn.execute(select([sent_alerts.c.db_link])).fetchone()
+
+        db_link = res['db_link']
+        snapshot.assert_match(db_link)

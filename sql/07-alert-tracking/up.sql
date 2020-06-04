@@ -9,6 +9,7 @@ create table sent_alerts (
     local_source text,
     frequency smallint not null,
     recipient text not null,
+    db_link text not null,
     filter text not null,
     foreign key (user_id) references users(id)
 );

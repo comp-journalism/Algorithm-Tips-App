@@ -11,7 +11,7 @@ from sqlalchemy.sql import and_, func, not_, select, tuple_
 from api.auth import login_required
 from api.db import engine
 from api.errors import ConfirmationPendingError, abort_json
-from api.mail import send_confirmation, render_alert, BASE_URL, send_alert, read_private_alert_token
+from api.mail import send_confirmation, render_alert, BASE_URL, send_alert, read_private_alert_token, build_db_url
 from api.models import alerts as alerts_
 from api.models import (annotated_leads, confirmed_emails, leads,
                         sent_alert_contents, sent_alerts, users)
@@ -363,6 +363,7 @@ def trigger_alerts():
 
                 sent_alert['alert_id'] = row['id']
                 sent_alert['send_date'] = datetime.now()
+                sent_alert['db_link'] = build_db_url(sent_alert)
 
                 query = sent_alerts.insert().values(  # pylint: disable=no-value-for-parameter
                     **sent_alert)

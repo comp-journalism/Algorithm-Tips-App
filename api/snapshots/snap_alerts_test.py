@@ -70,3 +70,5 @@ Click here to see all 1 new leads: http://db.algorithmtips.org/db?federal=Federa
 Delete This Alert: http://db.algorithmtips.org/delete-alert?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo
 Unsubscribe From All Alerts: http://db.algorithmtips.org/unsubscribe?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo
 Contact: http://algorithmtips.org/about/'''
+
+snapshots['test_alert_db_link 1'] = 'http://db.algorithmtips.org/db?regional=exclude&local=exclude'

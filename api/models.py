@@ -92,6 +92,7 @@ sent_alerts = Table('sent_alerts', meta,
                     Column('local_source', String),
                     Column('frequency', SmallInteger, nullable=False),
                     Column('recipient', String, nullable=False),
+                    Column('db_link', String, nullable=False),
                     Column('filter', String, nullable=False),
                     )
 
