@@ -301,11 +301,24 @@ def min_date_threshold(kind, fudge=timedelta(hours=6)):
         return datetime.now() - timedelta(days=30) + fudge
 
 
+FREQS = {
+    'weekly': 0,
+    'semi-weekly': 1,
+    'monthly': 2
+}
+
+
 @alerts.route('/trigger', methods=('POST',))
 def trigger_alerts():
     from api.api import build_filtered_lead_selection
+
     if request.remote_addr not in current_app.config['ALERT_TRIGGER_WHITELIST']:
         return abort_json(401, 'Unauthorized')
+
+    freq = request.args.get('frequency', None)
+
+    if freq is not None and freq not in FREQS:
+        return abort_json(400, 'Invalid frequency specified.')
 
     with engine().connect() as con:
         # select all alerts where:
@@ -313,9 +326,14 @@ def trigger_alerts():
         # 2. the alert hasn't been sent in the current time period
         confirmed = select(
             [confirmed_emails.c.user_id, confirmed_emails.c.email]).cte()
+
+        where = tuple_(alerts_.c.user_id, alerts_.c.recipient).in_(confirmed)
+        if freq is not None:
+            where = and_(where, alerts_.c.frequency == FREQS[freq])
+
         query = select([alerts_, func.max(sent_alerts.c.send_date).label('last_sent')])\
             .select_from(alerts_.outerjoin(sent_alerts, sent_alerts.c.alert_id == alerts_.c.id))\
-            .where(tuple_(alerts_.c.user_id, alerts_.c.recipient).in_(confirmed))\
+            .where(where)\
             .group_by(alerts_.c.id)
 
         results = con.execute(query)

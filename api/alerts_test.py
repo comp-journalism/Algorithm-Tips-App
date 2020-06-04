@@ -150,7 +150,7 @@ def test_trigger_initial_send(sqlite_connection, send_alert, alert_app, confirme
 
 
 def test_trigger_no_contents(sqlite_connection, send_alert, alert_app, confirmed_email):
-    """Test sending the alert email when there is no new content. It should record """
+    """Test sending the alert email when there is no new content. It should not record any new data in the DB."""
     with alert_app.test_client(True) as client:
         with client.session_transaction() as sess:
             sess['id'] = 1
@@ -318,3 +318,56 @@ def test_alert_db_link(sqlite_connection, alert_app, send_alert, confirmed_email
 
         db_link = res['db_link']
         snapshot.assert_match(db_link)
+
+
+def test_trigger_frequency_parameter(sqlite_connection, send_alert, alert_app, confirmed_email, trigger_published_dt):
+    """Test sending the alert when the frequency parameter is set."""
+    with alert_app.test_client(True) as client:
+        with client.session_transaction() as sess:
+            sess['id'] = 1
+
+        res = client.post('/alert/create', json={
+            'filter': '',
+            'recipient': 'test@test.net',
+            'sources': {},
+            'frequency': 0
+        })
+
+        assert res.status_code == 200
+
+    with alert_app.test_client(False) as client:
+        res = client.post('/alert/trigger?frequency=monthly')
+        assert res.status_code == 200
+
+    with sqlite_connection.connect() as conn:
+        sent_alert_results = conn.execute(select([sent_alerts]))
+        rows = list(dict(row) for row in sent_alert_results)
+        assert len(rows) == 0
+
+    send_alert.assert_not_called()
+
+
+def test_trigger_invalid_frequency(sqlite_connection, send_alert, alert_app, confirmed_email, trigger_published_dt):
+    with alert_app.test_client(True) as client:
+        with client.session_transaction() as sess:
+            sess['id'] = 1
+
+        res = client.post('/alert/create', json={
+            'filter': '',
+            'recipient': 'test@test.net',
+            'sources': {},
+            'frequency': 0
+        })
+
+        assert res.status_code == 200
+
+    with alert_app.test_client(False) as client:
+        res = client.post('/alert/trigger?frequency=invalid')
+        assert res.status_code == 400
+
+    with sqlite_connection.connect() as conn:
+        sent_alert_results = conn.execute(select([sent_alerts]))
+        rows = list(dict(row) for row in sent_alert_results)
+        assert len(rows) == 0
+
+    send_alert.assert_not_called()
