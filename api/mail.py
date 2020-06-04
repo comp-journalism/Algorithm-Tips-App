@@ -149,6 +149,7 @@ def format_source(alert):
 
 
 def build_db_url(alert):
+    from api.alerts import min_date_threshold
     KEYS = {
         'filter': 'filter',
         'federal_source': 'federal',
@@ -156,7 +157,13 @@ def build_db_url(alert):
         'local_source': 'local'
     }
 
-    params = '&'.join(f'{value}={urlencode(alert[key])}' for key, value in KEYS.items() if key in alert and alert[key])
+    min_date = min_date_threshold(alert['frequency']).strftime('%Y-%m-%d')
+    max_date = datetime.now().strftime('%Y-%m-%d')
+
+    input_params = [f'{value}={urlencode(alert[key])}' for key, value in KEYS.items() if key in alert and alert[key]]
+    input_params += [f'from={min_date}', f'to={max_date}']
+
+    params = '&'.join(input_params)
     if params:
         return f"{BASE_URL}/db?{params}"
     else:

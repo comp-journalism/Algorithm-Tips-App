@@ -47,7 +47,7 @@ snapshots['test_alert_render 1'] = '''<!DOCTYPE html>
     </table>
     </p>
     <p>
-        Click <a href="http://db.algorithmtips.org/db?federal=Federal%20Agency%20-%20Executive&regional=exclude">here</a> to see all 1 new leads.
+        Click <a href="http://db.algorithmtips.org/db?federal=Federal%20Agency%20-%20Executive&regional=exclude&from=2020-05-28&to=2020-06-04">here</a> to see all 1 new leads.
     </p>
     <p style="font-size:small;">
         <em><a href="http://db.algorithmtips.org/delete-alert?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo">Delete This Alert</a> &middot; <a href="http://db.algorithmtips.org/unsubscribe?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo">Unsubscribe
@@ -65,10 +65,10 @@ snapshots['test_alert_render 1'] = '''<!DOCTYPE html>
 
 snapshots['test_alert_render 2'] = '''New leads matching your alert have been added to the AlgorithmTips Database at http://db.algorithmtips.org/.
 
-Click here to see all 1 new leads: http://db.algorithmtips.org/db?federal=Federal%20Agency%20-%20Executive&regional=exclude
+Click here to see all 1 new leads: http://db.algorithmtips.org/db?federal=Federal%20Agency%20-%20Executive&regional=exclude&from=2020-05-28&to=2020-06-04
 
 Delete This Alert: http://db.algorithmtips.org/delete-alert?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo
 Unsubscribe From All Alerts: http://db.algorithmtips.org/unsubscribe?token=eyJ1c2VyIjoxLCJzZW5kIjoxfQ.c1W0brRrBzXYLL2Euk8RHAHIPzo
 Contact: http://algorithmtips.org/about/'''
 
-snapshots['test_alert_db_link 1'] = 'http://db.algorithmtips.org/db?regional=exclude&local=exclude'
+snapshots['test_alert_db_link 1'] = 'http://db.algorithmtips.org/db?regional=exclude&local=exclude&from=2020-05-28&to=2020-06-04'
