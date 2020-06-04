@@ -11,7 +11,7 @@
           </div>
           <b-collapse id="advanced-filters">
             <b-form-group
-              label="Discovered On or After:"
+              label="Published On or After:"
               label-for="from-date"
               label-cols-sm="3"
               label-align="right"
@@ -19,7 +19,7 @@
               <b-form-datepicker id="from-date" v-model="form.from" />
             </b-form-group>
             <b-form-group
-              label="Discovered On or Before:"
+              label="Published On or Before:"
               label-for="to-date"
               label-cols-sm="3"
               label-align="right"

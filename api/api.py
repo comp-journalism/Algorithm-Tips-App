@@ -89,9 +89,9 @@ def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None,
         where.append(
             text("(match(name, description, topic) against (:filter in boolean mode) or match(people, organizations) against (:filter in boolean mode))").bindparams(filter=filter_))
     if from_ is not None and from_ != '':
-        where.append(leads.c.discovered_dt >= from_)
+        where.append(annotated_leads.c.published_dt >= from_)
     if to is not None and to != '':
-        where.append(leads.c.discovered_dt <= to)
+        where.append(annotated_leads.c.published_dt <= to)
 
     source_values = []
     for key in ['federal', 'regional', 'local']:
