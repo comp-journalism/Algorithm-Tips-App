@@ -50,13 +50,15 @@ export default {
             alert.id = res.data.id;
 
             commit(ADD_ALERT, alert);
+            return res.data;
         },
         async update({ commit }, alert) {
-            await axios.put(api_url(`alert/${alert.id}`), alert, {
+            const res = await axios.put(api_url(`alert/${alert.id}`), alert, {
                 withCredentials: true
             });
 
             commit(ADD_ALERT, alert);
+            return res.data;
         },
         async remove({ commit }, id) {
             await axios.delete(api_url(`alert/${id}`), {

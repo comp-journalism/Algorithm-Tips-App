@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 from sqlalchemy.sql import select, and_
 
+from api.alerts import CONFIRMATION_NOTE
 from api.mail import render_alert, get_private_alert_token
 from api.models import (annotated_leads, confirmed_emails, sent_alert_contents,
                         sent_alerts, alerts as alerts_)
@@ -57,7 +58,9 @@ def test_create_alert_logged_in(sqlite_connection, alert_app, send_confirmation)
         # success
         assert res.status_code == 200
         assert res.get_json() == {
-            'id': 1
+            'id': 1,
+            'status': 'ok',
+            'notes': [CONFIRMATION_NOTE]
         }
 
         # sends confirmation

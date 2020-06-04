@@ -128,13 +128,24 @@ export default {
       if (this.id) {
         // this is an edit
         try {
-          await this.update({
+          const res = await this.update({
             ...this.form,
             id: this.id
           });
 
           this.$router.push({
             path: "/alerts"
+          });
+
+          this.$nextTick(() => {
+            if (res.notes) {
+              for (const note of res.notes) {
+                this.$bvToast.toast(note, {
+                  title: "Note",
+                  autoHideDelay: 15000
+                });
+              }
+            }
           });
         } catch (err) {
           this.$bvToast.toast(`Unable to update alert: ${err.message}`, {
@@ -144,10 +155,21 @@ export default {
         }
       } else {
         try {
-          await this.create(this.form);
+          const res = await this.create(this.form);
 
           this.$router.push({
             path: "/alerts"
+          });
+
+          this.$nextTick(() => {
+            if (res.notes) {
+              for (const note of res.notes) {
+                this.$bvToast.toast(note, {
+                  title: "Note",
+                  autoHideDelay: 15000
+                });
+              }
+            }
           });
         } catch (err) {
           this.$bvToast.toast(`Unable to create alert: ${err.message}`, {

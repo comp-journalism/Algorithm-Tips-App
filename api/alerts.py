@@ -18,6 +18,8 @@ from api.models import (annotated_leads, confirmed_emails, leads,
 
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 
+CONFIRMATION_NOTE = 'You will not receive alerts until your email has been confirmed. You should receive a confirmation email momentarily. Follow the instructions within to confirm your address.'
+
 
 def init_alerts():
     cfg = ConfigParser()
@@ -99,12 +101,15 @@ def update_alert(uid, alert_id):
             return flask.abort(404)
 
         try:
-            send_confirmation(uid, data['recipient'], con)
+            conf_sent = send_confirmation(uid, data['recipient'], con)
         except ConfirmationPendingError:
             # confirmation email already pending
-            return {'status': 'ok', 'notes': ['A confirmation email is already pending.']}
+            return {'status': 'ok', 'notes': ['A confirmation email is pending.']}
 
-        return {'status': 'ok'}
+        if conf_sent:
+            return {'status': 'ok', 'notes': [CONFIRMATION_NOTE]}
+        else:
+            return {'status': 'ok'}
 
 
 @alerts.route('/<alert_id>', methods=('DELETE',))
@@ -250,12 +255,16 @@ def create_alert(uid):
                 'reason': 'Unable to create alert in database'
             })
 
+        base = {'id': alert_id}
         try:
-            send_confirmation(uid, data['recipient'], con)
+            conf_sent = send_confirmation(uid, data['recipient'], con)
         except ConfirmationPendingError:
-            return {'id': alert_id, 'notes': ['A confirmation for this recipient is already pending.']}
+            return {'notes': ['A confirmation for this recipient is already pending.'], **base}
         else:
-            return {'id': alert_id}
+            if conf_sent:
+                return {'status': 'ok', 'notes': [CONFIRMATION_NOTE], **base}
+            else:
+                return {'status': 'ok', **base}
 
 
 @alerts.route('/<alert_id>/resend-confirmation')
