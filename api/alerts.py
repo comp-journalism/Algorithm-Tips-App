@@ -98,7 +98,11 @@ def update_alert(uid, alert_id):
         if res.rowcount == 0:
             return flask.abort(404)
 
-        send_confirmation(uid, data['recipient'], con)
+        try:
+            send_confirmation(uid, data['recipient'], con)
+        except ConfirmationPendingError:
+            # confirmation email already pending
+            return {'status': 'ok', 'notes': ['A confirmation email is already pending.']}
 
         return {'status': 'ok'}
 
@@ -248,8 +252,8 @@ def create_alert(uid):
 
         try:
             send_confirmation(uid, data['recipient'], con)
-        except ConfirmationPendingError as err:
-            return abort_json(500, err.message)
+        except ConfirmationPendingError:
+            return {'id': alert_id, 'notes': ['A confirmation for this recipient is already pending.']}
         else:
             return {'id': alert_id}
 

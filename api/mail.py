@@ -8,7 +8,7 @@ from itsdangerous import URLSafeTimedSerializer, URLSafeSerializer
 from sqlalchemy.sql import and_, select
 
 from api.errors import ConfirmationPendingError
-from api.models import pending_confirmations
+from api.models import pending_confirmations, confirmed_emails
 
 CHARSET = 'UTF-8'
 BASE_URL = 'http://db.algorithmtips.org'
@@ -51,6 +51,13 @@ def send_confirmation(uid, email, con, min_delay=timedelta(days=1)):
     """Sends a confirmation email via Flask-Mail, then records the pending
     confirmation in the database to prevent spamming a recipient with
     confirmation emails."""
+    # is this email already confirmed?
+    query = select([confirmed_emails]).where(and_(confirmed_emails.c.user_id == uid, confirmed_emails.c.email == email))
+    res = con.execute(query).fetchone()
+
+    if res is not None:
+        return False
+
     # does this email have a recent pending confirmation?
     min_date = datetime.now() - min_delay
     query = select([pending_confirmations]).where(and_(

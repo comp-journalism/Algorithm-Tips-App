@@ -1,6 +1,7 @@
 {
     "description": "Quality rating system that gives each nursing home a rating between 1 and 5 stars based on health inspections, staffing levels, and quality measures.",
     "discovered_dt": "Fri, 21 Jun 2019 17:18:21 GMT",
+    "published_dt": "Fri, 21 Jun 2019 17:18:21 GMT",
     "document_ext": "html",
     "document_relevance": 0.871637,
     "domain": "CMS.GOV",
