@@ -34,7 +34,7 @@
 
           <b-button-group class="float-right">
             <b-button @click="testFilter">Test Filter</b-button>
-            <b-button type="submit" variant="primary">Submit</b-button>
+            <b-button type="submit" variant="primary">Save</b-button>
           </b-button-group>
         </b-form>
       </div>
