@@ -30,7 +30,7 @@ def setup_cron():
             command=cmd('weekly'),
             comment='Weekly Alert Trigger'
         )
-        weekly.day.every(7)
+        weekly.dow.on('TUE')
 
         semi = cron.new(
             command=cmd('semi-weekly'),
@@ -42,7 +42,7 @@ def setup_cron():
             command=cmd('monthly'),
             comment='Monthly Alert Trigger'
         )
-        monthly.day.every(30)
+        monthly.dom.on(1)
 
 
 def undo_cron():
