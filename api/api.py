@@ -105,8 +105,9 @@ def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None,
             # value is exclude or invalid
             pass
 
-    if len(source_values) > 0:
-        where.append(leads.c.jurisdiction.in_(source_values))
+    # if the length of source_values is 0, then this will exclude
+    # everything...but that is what the user asked for
+    where.append(leads.c.jurisdiction.in_(source_values))
 
     query = build_lead_selection(
         uid=uid, fields=fields, where=where, flagged_only=flagged_only)
