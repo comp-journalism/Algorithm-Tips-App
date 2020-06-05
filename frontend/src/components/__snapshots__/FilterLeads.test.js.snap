@@ -10,7 +10,7 @@ exports[`FilterLeads should call filter on mount with the query param values 1`]
           <b-icon-chevron-right-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-closed"></b-icon-chevron-right-stub>
           <b-icon-chevron-down-stub fontscale="1" scale="1" rotate="0" shifth="0" shiftv="0" class="when-open"></b-icon-chevron-down-stub> <span>Advanced Filters</span>
         </div>
-        <b-collapse-stub id="advanced-filters" tag="div">
+        <b-collapse-stub id="advanced-filters" visible="true" tag="div">
           <b-form-group-stub label="Published On or After:" labelfor="from-date" labelcolssm="3" labelalign="right" feedbackarialive="assertive">
             <b-form-datepicker-stub id="from-date" value="2020-1-20" startweekday="0" buttonvariant="secondary" calendarwidth="270px" selectedvariant="primary" labeltodaybutton="Select today" todaybuttonvariant="outline-primary" labelresetbutton="Reset" resetbuttonvariant="outline-danger" labelclosebutton="Close" closebuttonvariant="outline-secondary" labelprevdecade="Previous decade" labelprevyear="Previous year" labelprevmonth="Previous month" labelcurrentmonth="Current month" labelnextmonth="Next month" labelnextyear="Next year" labelnextdecade="Next decade" labeltoday="Today" labelselected="Selected date" labelnodateselected="No date selected" labelcalendar="Calendar" labelnav="Calendar navigation" labelhelp="Use cursor keys to navigate calendar dates" dateformatoptions="[object Object]" weekdayheaderformat="short" offset="0" boundary="scrollParent"></b-form-datepicker-stub>
           </b-form-group-stub>
@@ -23,7 +23,7 @@ exports[`FilterLeads should call filter on mount with the query param values 1`]
         </b-collapse-stub>
         <b-button-group-stub tag="div" ariarole="group" id="submit-group" class="float-right">
           <b-button-stub target="_self" to="/db" event="click" routertag="a" variant="secondary" type="button" tag="button">Reset</b-button-stub>
-          <b-button-stub target="_self" to="[object Object]" event="click" routertag="a" variant="primary" type="submit" tag="button" id="submit-search">Search</b-button-stub>
+          <b-button-stub target="_self" event="click" routertag="a" variant="primary" type="submit" tag="button" id="submit-search">Search</b-button-stub>
         </b-button-group-stub>
       </b-form-stub>
     </div>

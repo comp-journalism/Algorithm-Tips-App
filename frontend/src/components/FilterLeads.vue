@@ -9,7 +9,7 @@
             <b-icon-chevron-down class="when-open" />
             <span>Advanced Filters</span>
           </div>
-          <b-collapse id="advanced-filters">
+          <b-collapse id="advanced-filters" :visible="showAdvanced">
             <b-form-group
               label="Published On or After:"
               label-for="from-date"
@@ -32,8 +32,8 @@
           </b-collapse>
 
           <b-button-group id="submit-group" class="float-right">
-            <b-button :to="$route.path">Reset</b-button>
-            <b-button id="submit-search" type="submit" :to="search_path" variant="primary">Search</b-button>
+            <b-button @click="clearLastQuery" :to="$route.path">Reset</b-button>
+            <b-button id="submit-search" type="submit" variant="primary">Search</b-button>
           </b-button-group>
         </b-form>
       </div>
@@ -114,7 +114,11 @@ export default {
   },
   methods: {
     ...mapActions({
-      filterLeads: "leads/filter"
+      filterLeads: "leads/filter",
+      setLastQuery: "leads/setLastQuery"
+    }),
+    ...mapGetters({
+      getLastQuery: "leads/lastQuery"
     }),
     initForm(query) {
       return {
@@ -127,7 +131,7 @@ export default {
       return {
         federal: query.federal,
         regional: query.regional,
-        local: query.regional
+        local: query.local
       };
     },
     loadMore() {
@@ -168,6 +172,11 @@ export default {
       if (isEqual(this.clean_filter(), this.query)) {
         return;
       }
+
+      this.setLastQuery({
+        flagged: this.flagged,
+        query: this.search_path.query
+      });
       this.$router.push(
         this.search_path,
         () => {},
@@ -197,6 +206,9 @@ export default {
       this.page = 0;
       this.page_count = 1;
       this.loadMore();
+    },
+    clearLastQuery() {
+      this.setLastQuery({ flagged: this.flagged, query: {} });
     }
   },
   computed: {
@@ -223,9 +235,23 @@ export default {
     },
     disable_loading() {
       return this.loading || this.no_results || this.reached_end;
+    },
+    showAdvanced() {
+      const keys = Object.keys(this.clean_filter()).filter(k => k !== "filter");
+      return keys.length > 0;
     }
   },
   async mounted() {
+    if (
+      isEqual(this.query, {}) &&
+      !isEqual(this.query, this.getLastQuery()(this.flagged))
+    ) {
+      return this.$router.push({
+        path: this.$route.path,
+        query: this.getLastQuery()(this.flagged) // sortof hacky, but it works
+      });
+    }
+
     if (this.flagged && !this.signedIn) {
       EventBus.$on("login", this.newSearch);
     } else {

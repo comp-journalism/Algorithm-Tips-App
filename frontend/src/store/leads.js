@@ -5,6 +5,7 @@ import Vue from 'vue';
 export const STORE_LEAD = 'STORE_LEAD';
 export const STORE_FILTER = 'STORE_FILTER';
 export const SET_FLAG = 'SET_FLAG';
+export const SET_LAST_QUERY = 'SET_LAST_QUERY';
 
 function filterKey(params) {
     const entries = Object.entries(params);
@@ -20,6 +21,10 @@ export default {
         return {
             leads: {},
             filters: {},
+            last_query: {
+                [true]: {},
+                [false]: {}
+            }
         };
     },
     mutations: {
@@ -40,6 +45,9 @@ export default {
         },
         [SET_FLAG](state, { id, flag }) {
             Vue.set(state.leads[id], 'flagged', flag);
+        },
+        [SET_LAST_QUERY](state, { flagged, query }) {
+            Vue.set(state.last_query, flagged, query);
         }
     },
     actions: {
@@ -111,6 +119,9 @@ export default {
         clearAllFlags({ commit, state }) {
             // used on logout to set everything back to "Add Flag"
             Object.keys(state.leads).forEach(id => commit(SET_FLAG, { id: Number(id), flag: false }));
+        },
+        setLastQuery({ commit }, opts) {
+            commit(SET_LAST_QUERY, opts);
         }
     },
     getters: {
@@ -130,6 +141,9 @@ export default {
             }
 
             return { page_count: meta.num_pages, num_results: meta.num_results };
+        },
+        lastQuery: (state) => (flagged) => {
+            return state.last_query[flagged];
         }
     }
 };

@@ -37,6 +37,7 @@ describe('FilterLeads', () => {
             actions: {
                 load: jest.fn(() => Promise.resolve()),
                 filter: jest.fn(() => Promise.resolve()),
+                setLastQuery: jest.fn(() => { }),
             },
             getters: {
                 find: jest.fn(() => () => data),
@@ -45,6 +46,7 @@ describe('FilterLeads', () => {
                     page_count: 1,
                     num_results: 5
                 })),
+                lastQuery: jest.fn(() => () => ({}))
             }
         };
 
@@ -171,5 +173,56 @@ describe('FilterLeads', () => {
         await Vue.nextTick();
 
         expect(leads_module.actions.filter.mock.calls.length).toBe(2);
+    });
+
+    it('should redirect to the last query if none is set and the last query was not nil', async () => {
+        router.push('/db');
+        leads_module.getters.lastQuery.mockReturnValue(() => ({
+            filter: 'test'
+        }));
+
+        mountFilter();
+
+        await Vue.nextTick();
+
+        expect(router.currentRoute.query).toEqual({
+            filter: 'test'
+        });
+    });
+
+    it('should NOT redirect to the last query if a query is set', async () => {
+        router.push('/db?filter=original');
+        leads_module.getters.lastQuery.mockReturnValue(() => ({
+            filter: 'test'
+        }));
+
+        mountFilter();
+
+        await Vue.nextTick();
+
+        expect(router.currentRoute.query).toEqual({
+            filter: 'original'
+        });
+    });
+
+    it('should set the last query on a search submission', async () => {
+        const el = mountFilter(false);
+
+        el.find("#filter-input").setValue('test');
+        await el.find("#lead-filter").trigger('submit');
+
+        await Vue.nextTick();
+
+        expect(router.currentRoute.query).toEqual({
+            filter: 'test'
+        });
+        expect(leads_module.actions.setLastQuery).toBeCalledWith(expect.anything(), {
+            flagged: false,
+            query: {
+                filter: 'test'
+            }
+        });
+
+        el.destroy();
     });
 });
