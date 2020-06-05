@@ -85,6 +85,11 @@ export default {
             });
 
             commit(ADD_ALERT, res.data);
+        },
+        clear({ commit, state }) {
+            for (const key of Object.keys(state.alerts)) {
+                commit(REMOVE_ALERT, key);
+            }
         }
     }
 }

@@ -48,7 +48,8 @@ export default {
       login: "user/login",
       logout: "user/logout",
       updateFlags: "leads/updateAllFlags",
-      clearFlags: "leads/clearAllFlags"
+      clearFlags: "leads/clearAllFlags",
+      clearAlerts: "alerts/clear"
     }),
     async signout() {
       try {
@@ -56,6 +57,7 @@ export default {
         await this.logout();
 
         this.clearFlags();
+        this.clearAlerts();
         this.$bvToast.toast("You have been logged out.", {
           title: "Logout successful."
         });

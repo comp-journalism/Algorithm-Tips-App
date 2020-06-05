@@ -1,4 +1,3 @@
-import flask
 from flask import Blueprint, request
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import and_, select, text
@@ -7,6 +6,7 @@ from api.auth import login_required
 from api.db import engine
 from api.models import flags as flags_
 from api.models import leads
+from api.errors import abort_json
 
 flags = Blueprint('flags', __name__, url_prefix='/flag')
 
@@ -21,7 +21,7 @@ def list_flags(uid):
         if not isinstance(ids, list):
             raise ValueError()
     except ValueError:
-        flask.abort(400)
+        abort_json(400)
 
     if len(ids) == 0:
         return {'flags': []}
@@ -53,7 +53,7 @@ def put_flag(uid, lead_id):
             return {'status': 'ok', 'rows': res.rowcount}
         except IntegrityError:
             # invalid lead_id
-            return flask.abort(404)
+            return abort_json(404)
 
 
 @flags.route('/<lead_id>', methods=('DELETE',))

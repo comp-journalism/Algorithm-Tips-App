@@ -148,7 +148,11 @@ export default {
             }
           });
         } catch (err) {
-          this.$bvToast.toast(`Unable to update alert: ${err.message}`, {
+          let msg = err.message;
+          if (err.response && err.response.data) {
+            msg = err.response.data.reason;
+          }
+          this.$bvToast.toast(`Unable to update alert: ${msg}`, {
             title: "Error",
             variant: "danger"
           });
@@ -172,7 +176,11 @@ export default {
             }
           });
         } catch (err) {
-          this.$bvToast.toast(`Unable to create alert: ${err.message}`, {
+          let msg = err.message;
+          if (err.response && err.response.data) {
+            msg = err.response.data.reason;
+          }
+          this.$bvToast.toast(`Unable to create alert: ${msg}`, {
             title: "Error",
             variant: "danger"
           });

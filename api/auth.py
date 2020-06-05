@@ -112,7 +112,7 @@ def signin():
 
 @auth.route('/signout')
 def signout():
-    session.pop('id', None)
+    session.clear()
     return {'status': 'ok'}
 
 

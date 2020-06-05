@@ -171,4 +171,8 @@ export default {
 .row-controls svg:first-child {
   margin-right: 1em;
 }
+
+.row-controls {
+  min-width: 6em;
+}
 </style>

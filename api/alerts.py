@@ -46,6 +46,24 @@ def is_confirmed(uid, emails, con):
         return res.rowcount >= 1
 
 
+def email_taken(uid, email, con):
+    query = select([users]).where(
+        and_(users.c.email == email, not_(users.c.id == uid)))
+    res = con.execute(query)
+
+    if res.rowcount > 0:
+        return abort_json(400, 'Email address is already claimed by another user.')
+
+    query = select([confirmed_emails]).where(and_(
+        confirmed_emails.c.email == email, not_(confirmed_emails.c.user_id == uid)))
+    res = con.execute(query)
+
+    if res.rowcount > 0:
+        return abort_json(400, 'Email address is already claimed by another user.')
+
+    return False
+
+
 def format_alert(row):
     return {
         'sources': {
@@ -66,7 +84,7 @@ def lookup_alert(uid, alert_id):
         res = con.execute(query)
         if res.rowcount == 0:
             # does not exist or no access
-            return flask.abort(404)
+            return abort_json(404)
 
         response = format_alert(res.fetchone())
         response['confirmed'] = is_confirmed(uid, response['recipient'], con)
@@ -80,12 +98,13 @@ def update_alert(uid, alert_id):
         data = request.get_json()
         assert EMAIL_REGEX.fullmatch(data['recipient']) is not None
     except AssertionError:
-        return flask.abort(400, {
-            'status': 'error',
-            'reason': 'Unable to read or validate alert data'
-        })
+        return abort_json(400, 'Unable to read or validate alert data')
 
     with engine().begin() as con:
+        is_taken = email_taken(uid, data['recipient'], con)
+        if is_taken:
+            return is_taken
+
         query = alerts_.update().values(  # pylint: disable=no-value-for-parameter
             filter=data['filter'],
             recipient=data['recipient'],
@@ -98,7 +117,7 @@ def update_alert(uid, alert_id):
         res = con.execute(query)
 
         if res.rowcount == 0:
-            return flask.abort(404)
+            return abort_json(404)
 
         try:
             conf_sent = send_confirmation(uid, data['recipient'], con)
@@ -120,7 +139,7 @@ def delete_alert(uid, alert_id):
             and_(alerts_.c.id == alert_id, alerts_.c.user_id == uid))
         res = con.execute(query)
         if res.rowcount == 0:
-            return flask.abort(404)
+            return abort_json(404)
 
         return {'status': 'ok'}
 
@@ -211,25 +230,10 @@ def create_alert(uid):
 
     with engine().begin() as con:
         # before beginning, check if this email belongs to another existing users
-        query = select([users]).where(
-            and_(users.c.email == data['recipient'], not_(users.c.id == uid)))
-        res = con.execute(query)
+        is_taken = email_taken(uid, data['recipient'], con)
 
-        if res.rowcount > 0:
-            return flask.abort(400, {
-                'status': 'error',
-                'reason': 'Email address is already claimed by another users.'
-            })
-
-        query = select([confirmed_emails]).where(and_(
-            confirmed_emails.c.email == data['recipient'], not_(confirmed_emails.c.user_id == uid)))
-        res = con.execute(query)
-
-        if res.rowcount > 0:
-            return flask.abort(400, {
-                'status': 'error',
-                'reason': 'Email address is already claimed by another users.'
-            })
+        if is_taken:
+            return is_taken
 
         # we're going to abuse the DB to do validation & type checking. the only exception is the email, which is validated above
         try:
@@ -250,10 +254,7 @@ def create_alert(uid):
             alert_id = res.inserted_primary_key[0]
         except Exception as e:
             print(e)
-            return flask.abort(400, {
-                'status': 'error',
-                'reason': 'Unable to create alert in database'
-            })
+            return abort_json(400, 'Unable to create alert in database')
 
         base = {'id': alert_id}
         try:

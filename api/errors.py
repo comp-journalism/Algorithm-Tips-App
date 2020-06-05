@@ -1,11 +1,14 @@
 from flask import jsonify
 
 
-def abort_json(status, reason):
-    res = jsonify({
+def abort_json(status, reason=None):
+    inner_res = {
         'status': 'error',
-        'reason': reason
-    })
+    }
+    if reason is not None:
+        inner_res['reason'] = reason
+
+    res = jsonify(inner_res)
     res.status_code = status
     return res
 

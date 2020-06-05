@@ -14,6 +14,7 @@ from api.db import engine, init_pool
 from api.flags import flags as flags_bp
 from api.mail import init_mail
 from api.models import annotated_leads, crowd_ratings, flags, leads
+from api.errors import abort_json
 
 with open('data/sources.json') as f:
     SOURCES = json.load(f)
@@ -134,7 +135,7 @@ def get_lead(uid, lead_id):
             result['ratings'] = ratings.fetchall()
             return flask.jsonify(result)
         else:
-            return flask.abort(404)
+            return abort_json(404)
 
 
 PAGE_SIZE = 5
