@@ -396,7 +396,7 @@ def trigger_alerts():
                 templates = render_alert(sent_alert, [{
                     'name': lead['name'],
                     'link': f'{BASE_URL}/lead/{lead["id"]}'
-                } for lead in islice(lead_results, 3)])
+                } for lead in islice(lead_results, None)])
 
                 sent_contents = [
                     {'send_id': send_id,
