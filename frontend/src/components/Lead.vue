@@ -204,9 +204,9 @@ export default {
       const KEYS = ["controversy", "magnitude", "societal_impact", "surprise"];
       const LABELS = [
         "Potential for Controversy",
-        "Size of Impact",
+        "Number of People Impacted",
         "Negative Societal Impact",
-        "Surprising"
+        "Surprising, Unusual, or Unexpected"
       ];
       const mapper = obj =>
         KEYS.map((key, ix) => {
