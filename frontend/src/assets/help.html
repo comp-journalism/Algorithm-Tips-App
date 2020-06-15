@@ -4,34 +4,53 @@
     </div>
     <div class="row">
         <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean accumsan metus leo, et imperdiet enim
-            sagittis
-            fermentum. Vestibulum a tortor hendrerit, porttitor sem sit amet, pulvinar nisl. Morbi eu accumsan massa.
-            Quisque a odio
-            dapibus mauris auctor aliquam sit amet sit amet massa. Praesent fermentum urna sed tellus dapibus iaculis.
-            Pellentesque
-            ut scelerisque nibh. Donec vulputate blandit purus ac pulvinar. Vivamus metus sapien, luctus id eros non,
-            dignissim
-            eleifend odio. Nunc mollis sed odio ut iaculis. Vestibulum convallis, magna sit amet vulputate semper, nisl
-            massa vehicula
-            tortor, ut dapibus tellus turpis non mi. In in quam ac dui tempor imperdiet posuere eget quam. Morbi
-            bibendum tortor sit
-            amet sollicitudin lobortis. Vestibulum nec tempus magna.
+            The Algorithm Tips Database is compiled by finding references to algorithms in government websites, and then augmenting those findings with information added both manually and automatically. Though we strive for broad coverage, our methods are meant to be pragmatic, and are not exhaustive of all algorithms in use in government. 
+        </p>
+        <h4>Discovery</h4>
+        <p>
+            First, we created a list of <a href="https://docs.google.com/spreadsheets/d/1VHPcXMmZ8_f9V_ngV4Bc2hwIIDRq3Ev-wnGlI9RU3vs/edit?usp=sharing" target="_blank">search terms</a> that are related to algorithms and algorithmic decision-making. Each week, we use those terms in automated Google searches, filtering down to only .gov results. We exclude algorithms found on the National Institutes of Health (NIH) since otherwise we would be overwhelmed with references to research papers. 
+        </p>
+        <h4>Relevance Scoring</h4>
+        <p>
+            Next, we download the documents identified in the Google search and extract the text. We score each document on a scale from 0 (not relevant) to 1 (relevant) using a machine learned model. The machine learned model was trained using <a href="https://www.cjr.org/tow_center/machine-learning-automation-and-the-mueller-report.php" target="_blank">supervised learning</a>, by tagging hundreds of documents as “relevant” or “not relevant” to the concept of algorithmic decision-making. The model learns which words and phrases are most predictive of a relevant document, and can then score new documents based on their use of those words and phrases.  
+        </p>
+        <h4>Sampling</h4>
+        <p>
+            Our discovery process typically yields more than one thousand new documents each week, which is far too many for us to manually curate. To create a more manageable set of leads, we use the relevance scores to rank and select a sample of leads across different jurisdictions. This is combined with a small random sample for the sake of diversity. This creates the weekly sample which a human curator then examines more closely to determine if each item is really relevant and to add various aspects of metadata to it before it is published to the database. 
+        </p>
+        <h4>Metadata</h4>
+        <p>
+            Each document is then automatically tagged with a few pieces of metadata. The “Jurisdiction” and “Agency” fields are derived automatically from the URL domain name using <a href="https://github.com/GSA/data/tree/master/dotgov-domains" target="_blank">data provided by the US General Services Administration</a> linking domains to government jurisdictions and agencies. The “People & Organizations” field is based on the top five entities for each type (based on frequency) that are automatically extracted using <a href="https://spacy.io/usage/linguistic-features#named-entities" target="_blank">SpaCy’s entity recognizer</a>. The curator manually writes the title and description of each lead as well as specifying the “Main Topics” field. 
         </p>
         <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean accumsan metus leo, et imperdiet enim
-            sagittis
-            fermentum. Vestibulum a tortor hendrerit, porttitor sem sit amet, pulvinar nisl. Morbi eu accumsan massa.
-            Quisque a odio
-            dapibus mauris auctor aliquam sit amet sit amet massa. Praesent fermentum urna sed tellus dapibus iaculis.
-            Pellentesque
-            ut scelerisque nibh. Donec vulputate blandit purus ac pulvinar. Vivamus metus sapien, luctus id eros non,
-            dignissim
-            eleifend odio. Nunc mollis sed odio ut iaculis. Vestibulum convallis, magna sit amet vulputate semper, nisl
-            massa vehicula
-            tortor, ut dapibus tellus turpis non mi. In in quam ac dui tempor imperdiet posuere eget quam. Morbi
-            bibendum tortor sit
-            amet sollicitudin lobortis. Vestibulum nec tempus magna.
+            Crowd ratings are collected using the <a href="https://www.mturk.com/" target="_blank">Mechanical Turk platform</a>. Each lead summary is shown to five workers who rate it on a scale from 1 to 5 on dimensions of controversy, number of people impacted, potential for negative impact, and surprise. Workers also write an explanation and justification of their ratings. Workers are screened (1) to be based in the U.S. in order to ensure understanding of cultural context, and (2) to have some history of high performance, such that they’ve completed more than 500 tasks with 98% task approval.  
+        </p>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <h2>What You Can Do</h2>
+    </div>
+    <div class="row">
+        <h4>Search</h4>
+        <p>
+            You can search leads on the main <a href="http://db.algorithmtips.org/db">Database</a> page. Searches apply to the title, description, topics, and people & organizations fields. You can put searches in quotes (“ “) for exact matches, or you can use “*” as a wildcard to match different versions of a keyword. For instance “model*” matches “model” and “models”. Click “Search” to execute the search, and “Reset” to clear it. 
+        </p>
+        <h4>Filter</h4>
+        <p>
+            You can also filter leads on the main Database page. Click on “Advanced Filters” to expand the options. Leads can be filtered based on their publication date (Note: this may be different from the date the lead was first *found* in our discovery phase and reflects the date when the lead was finally published on Algorithm Tips). Leads can also be filtered based on their jurisdiction. 
+        </p>
+        <h4>Alerts</h4>
+        <p>
+            After signing in you can create periodic <a href="http://db.algorithmtips.org/alerts">Alerts</a> for leads that match your interests. You can specify the search terms, filters, and jurisdictions you’re interested in, then set the frequency and optionally specify the email address where you’d like the alerts sent. If you leave the search terms empty this will match any lead found by the system. If you want alerts sent to an email different from the one you’re signed in with you will first need to verify that email address by responding to a verification email the system will send you (check spam just in case). 
+        </p>
+        <p>
+            Weekly alerts are sent on Tuesdays, monthly alerts on the 1st of each month, and semi-weekly are sent every 10 days. 
+        </p>
+        <h4>Flags</h4>
+        <p>
+            While on the main Database page you can click the “Add Flag” button on a lead and, if you’re logged in the lead will be saved for later under the <a href="http://db.algorithmtips.org/flags">Flags</a> page. 
         </p>
     </div>
 </div>
