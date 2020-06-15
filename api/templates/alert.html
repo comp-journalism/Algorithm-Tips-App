@@ -2,53 +2,19 @@
 <html>
 
 <body>
-    <p>New leads matching your alert have been added to the <a href="http://db.algorithmtips.org/">AlgorithmTips
-            Database</a>.</p>
+    <p><b>Algorithm Tips Alert</b></p>
     <p>
-    <table>
-        <thead>
-            <tr>
-                <th colspan="2" style="font-variant: small-caps">Alert Details</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Filter:</td>
-                <td>{% if filter_text %}{{ filter_text }}{% else %}<em>None</em>{% endif %}</td>
-            </tr>
-            <tr>
-                <td>Sources:</td>
-                <td>{% if source_text %}{{ source_text }}{% else %}<em>Any</em>{% endif %}</td>
-            </tr>
-        </tbody>
-    </table>
-    <table>
-        <thead>
-            <tr>
-                <th style="font-variant: small-caps">Selected Leads</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for lead in leads %}
-            <tr>
-                <td><a href="{{ lead.link }}">{{ lead.name }}</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <a href="{{ links.alert|safe }}">Click here</a> to see all {{ leads|length }} new leads matching your alert for (keyword filter: {% if filter_text %}{{ filter_text }}{% else %}<em>None</em>{% endif %}; sources: {% if source_text %}{{ source_text }}{% else %}<em>Any</em>{% endif %})
     </p>
-    <p>
-        Click <a href="{{ links.alert|safe }}">here</a> to see all {{ leads|length }} new leads.
-    </p>
+
+    <hr>
+    
     <p style="font-size:small;">
         <em><a href="{{ links.delete }}">Delete This Alert</a> &middot; <a href="{{ links.unsubscribe }}">Unsubscribe
                 From All Alerts</a> &middot; <a href="http://algorithmtips.org/about/">Contact</a></em>
     </p>
     <p style="font-size:small;">
-        <em>You are receiving this email because you signed up for an alert from the AlgorithmTips Database. If this was
-            done in error, click <a href="{{ links.unsubscribe }}">here</a> to remove yourself from the database and
-            prevent future
-            emails.</em>
+        <em>You are receiving this email because you signed up for an alert from the AlgorithmTips Database. If this was done in error, click <a href="{{ links.unsubscribe }}">here</a> to prevent future emails.</em>
     </p>
 </body>
 
