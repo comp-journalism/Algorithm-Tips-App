@@ -7,7 +7,6 @@ users = Table('users', meta,
               Column('id', Integer, primary_key=True),
               Column('external_id', String(64), nullable=False),
               Column('external_type', String(16), nullable=False),
-              Column('email', String),
               UniqueConstraint('external_id', 'external_type')
               )
 

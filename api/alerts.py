@@ -14,7 +14,7 @@ from api.errors import ConfirmationPendingError, abort_json
 from api.mail import send_confirmation, render_alert, BASE_URL, send_alert, read_private_alert_token, build_db_url
 from api.models import alerts as alerts_
 from api.models import (annotated_leads, confirmed_emails, leads,
-                        sent_alert_contents, sent_alerts, users)
+                        sent_alert_contents, sent_alerts)
 
 alerts = Blueprint('alerts', __name__, url_prefix="/alert")
 
@@ -47,13 +47,6 @@ def is_confirmed(uid, emails, con):
 
 
 def email_taken(uid, email, con):
-    query = select([users]).where(
-        and_(users.c.email == email, not_(users.c.id == uid)))
-    res = con.execute(query)
-
-    if res.rowcount > 0:
-        return abort_json(400, 'Email address is already claimed by another user.')
-
     query = select([confirmed_emails]).where(and_(
         confirmed_emails.c.email == email, not_(confirmed_emails.c.user_id == uid)))
     res = con.execute(query)
