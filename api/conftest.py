@@ -4,6 +4,7 @@ import shutil
 from flask import Flask
 from sqlalchemy import create_engine
 from api import alerts
+from api.api import main as main_bp
 from api.models import confirmed_emails
 
 
@@ -13,16 +14,29 @@ def sqlite_connection(mocker):
         shutil.copy('test-db.sqlite', tmp.name)
         engine = create_engine(f"sqlite:///{tmp.name}")
         mocker.patch('api.alerts.engine', lambda: engine)
+        mocker.patch('api.api.engine', lambda: engine)
         yield engine
+
+
+def base_app():
+    app = Flask(__name__)
+    app.config['TESTING'] = True
+    app.secret_key = b'testtesttest'
+    return app
 
 
 @pytest.fixture
 def alert_app():
-    app = Flask(__name__)
-    app.config['TESTING'] = True
+    app = base_app()
     app.config['ALERT_TRIGGER_WHITELIST'] = '127.0.0.1'
-    app.secret_key = b'testtesttest'
     app.register_blueprint(alerts.alerts)
+    return app
+
+
+@pytest.fixture
+def api_app():
+    app = base_app()
+    app.register_blueprint(main_bp)
     return app
 
 

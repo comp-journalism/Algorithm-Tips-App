@@ -4,7 +4,7 @@ from math import ceil
 from os import environ
 
 import flask
-from flask import request
+from flask import request, Blueprint
 from flask_cors import CORS
 from sqlalchemy.sql import and_, select, text
 
@@ -40,6 +40,8 @@ app.register_blueprint(alerts)
 app.before_first_request(init_mail)
 app.before_first_request(init_pool)
 app.before_first_request(init_alerts)
+
+main = Blueprint('main', __name__)
 
 LEAD_FIELDS = [
     leads.c.id,
@@ -119,36 +121,37 @@ def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None,
     return query
 
 
-@app.route('/lead/<lead_id>')
+@main.route('/lead/<lead_id>')
 @login_used
 def get_lead(uid, lead_id):
     with engine().begin() as con:
         query = build_lead_selection(uid, where=[leads.c.id == lead_id])
 
         resultset = con.execute(query)
-        if resultset.rowcount >= 1:
-            result = dict(resultset.fetchone().items())
+        result = resultset.fetchone()
+        if result is not None:
+            result = dict(result)
 
             # now we load comments for it
             ratings_query = select([crowd_ratings])\
-                .where(crowd_ratings.c.id == lead_id)
+                .where(crowd_ratings.c.lead_id == lead_id)
             ratings = con.execute(ratings_query)
-            result['ratings'] = ratings.fetchall()
+            result['ratings'] = [dict(row) for row in ratings.fetchall()]
             return flask.jsonify(result)
         else:
-            return abort_json(404)
+            return abort_json(404, 'no such id')
 
 
 PAGE_SIZE = 5
 
 
-@app.route('/leads')
+@main.route('/leads')
 @login_used
 def filter_all(uid):
     return filter_leads(uid)
 
 
-@app.route('/leads/flagged')
+@main.route('/leads/flagged')
 @login_required
 def filter_flagged(uid):
     return filter_leads(uid, flagged=True)
@@ -214,4 +217,6 @@ def filter_leads(uid, flagged=False):
             **meta
         }
         return flask.jsonify(result)
-# return app
+
+
+app.register_blueprint(main)
