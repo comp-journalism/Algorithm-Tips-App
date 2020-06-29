@@ -94,7 +94,7 @@ def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None,
     if from_ is not None and from_ != '':
         where.append(annotated_leads.c.published_dt >= from_)
     if to is not None and to != '':
-        where.append(annotated_leads.c.published_dt <= to)
+        where.append(annotated_leads.c.published_dt <= to + ' 23:59:59')
 
     source_values = []
     for key in ['federal', 'regional', 'local']:
