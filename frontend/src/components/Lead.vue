@@ -29,7 +29,7 @@
         <dl class="row">
           <dt class="col-sm-3 text-right">Jurisdiction</dt>
           <dd class="col-sm-9">{{ lead.jurisdiction }}</dd>
-          <dt class="col-sm-3 text-right">Agency</dt>
+          <dt class="col-sm-3 text-right">Source</dt>
           <dd class="col-sm-9">{{ lead.source }}</dd>
           <dt class="col-sm-3 text-right">Main Topics</dt>
           <dd class="col-sm-9">{{ lead.topic }}</dd>

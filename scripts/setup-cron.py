@@ -30,7 +30,8 @@ def setup_cron():
             command=cmd('weekly'),
             comment='Weekly Alert Trigger'
         )
-        weekly.dow.on('TUE')
+        #weekly.dow.on('TUE')
+        weekly.setall("30 14 * * 2") # trigger on tuesdays at 10:30am ET (14:30 UTC)
 
         semi = cron.new(
             command=cmd('semi-weekly'),

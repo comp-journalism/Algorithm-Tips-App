@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Vuex from 'vuex';
 import store_cfg from './store';
+
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 
 import App from './App.vue';
@@ -15,11 +16,18 @@ import HowThisWorks from './components/HowThisWorks.vue';
 import ConfirmEmail from './components/ConfirmEmail.vue';
 import DeleteAlert from './components/DeleteAlert.vue';
 import Unsubscribe from './components/Unsubscribe.vue';
+//import VueAnalytics from 'vue-analytics';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 Vue.config.productionTip = false;
+
+// Configuration VueAnalytics -- to integrate Google analytics with the app
+//Vue.use(VueAnalytics, {
+//  id: 'UA-180997791-1',
+//  router
+//});
 
 Vue.use(VueRouter);
 Vue.use(Vuex);
