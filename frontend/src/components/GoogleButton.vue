@@ -18,7 +18,7 @@ import auth2 from "../auth2";
 export default {
   name: "GoogleButton",
   props: {
-    noListen: Boolean
+    noListen: Boolean,
   },
   async mounted() {
     this.auth2 = await auth2();
@@ -35,13 +35,13 @@ export default {
   },
   data: () => {
     return {
-      auth2: null
+      auth2: null,
     };
   },
   computed: {
     ...mapGetters({
-      loggedIn: "user/signedIn"
-    })
+      loggedIn: "user/signedIn",
+    }),
   },
   methods: {
     ...mapActions({
@@ -49,7 +49,7 @@ export default {
       logout: "user/logout",
       updateFlags: "leads/updateAllFlags",
       clearFlags: "leads/clearAllFlags",
-      clearAlerts: "alerts/clear"
+      clearAlerts: "alerts/clear",
     }),
     async signout() {
       try {
@@ -59,7 +59,7 @@ export default {
         this.clearFlags();
         this.clearAlerts();
         this.$bvToast.toast("You have been logged out.", {
-          title: "Logout successful."
+          title: "Logout successful.",
         });
       } catch (err) {
         this.loginError(err, false);
@@ -71,19 +71,19 @@ export default {
       this.$bvToast.toast(`Unable to ${type}: ${err.message}.`, {
         title: `${type} failed.`,
         autoHideDelay: 10000,
-        variant: "danger"
+        variant: "danger",
       });
     },
     async signin(user) {
-      if (!user.wc) {
-        // logout --- but this is called by gapi so w/e
+      if (!user.getAuthResponse().id_token) {
+        // no token present---this is a logout call triggered by the currentUser listener
         return;
       }
       try {
         await this.login(user);
 
         this.$bvToast.toast("You have been logged in.", {
-          title: "Login successful."
+          title: "Login successful.",
         });
       } catch (err) {
         this.loginError(err);
@@ -96,10 +96,10 @@ export default {
 
         this.$bvToast.toast("Unable to update flags.", {
           title: "Error",
-          variant: "danger"
+          variant: "danger",
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>
