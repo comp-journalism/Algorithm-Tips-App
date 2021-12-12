@@ -43,4 +43,8 @@ export default {
 #b-toaster-top-right {
   margin-top: 5em;
 }
+
+a {
+    word-break: break-all;
+}
 </style>
