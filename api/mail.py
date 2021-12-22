@@ -11,7 +11,7 @@ from api.errors import ConfirmationPendingError
 from api.models import pending_confirmations, confirmed_emails
 
 CHARSET = 'UTF-8'
-BASE_URL = 'http://db.algorithmtips.org'
+BASE_URL = 'https://db.algorithmtips.org'
 
 
 class MailSingleton:
@@ -49,7 +49,7 @@ def init_mail():
 
 def render_confirmation_email(confirmation_id):
     signer = URLSafeTimedSerializer(current_app.secret_key)
-    link = f"http://db.algorithmtips.org/confirm-email?token={signer.dumps(confirmation_id, salt='confirm')}"
+    link = f"https://db.algorithmtips.org/confirm-email?token={signer.dumps(confirmation_id, salt='confirm')}"
 
     html = render_template('confirmation.html', link=link)
     text = render_template('confirmation.txt', link=link)

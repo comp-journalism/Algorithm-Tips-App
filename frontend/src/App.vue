@@ -2,7 +2,7 @@
   <div id="app">
     <b-navbar type="dark" variant="dark" sticky>
       <b-navbar-nav class="mr-auto">
-        <b-nav-item :active="activeOn('/')" href="//algorithmtips.org">Home</b-nav-item>
+        <b-nav-item :active="activeOn('/')" href="http://algorithmtips.org">Home</b-nav-item>
         <b-nav-item :active="activeOn('/db')" to="/db">Database</b-nav-item>
         <b-nav-item :active="activeOn('/alerts')" to="/alerts">Alerts</b-nav-item>
         <b-nav-item :active="activeOn('/flags')" to="/flags">Flags</b-nav-item>

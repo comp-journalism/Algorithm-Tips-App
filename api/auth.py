@@ -12,7 +12,7 @@ from api.errors import NoSuchConfirmation, abort_json
 from api.models import confirmed_emails, pending_confirmations, users
 
 # TODO: move to credentials file. same with frontend
-CLIENT_ID = "741161465779-iarif5gv7i2shgk80gmleg1trdtpb4hp.apps.googleusercontent.com"
+CLIENT_ID = "242875572469-otdncui7t31g7q1i3ev5bnusnnsffbpm.apps.googleusercontent.com"
 
 
 def validate_token(token):

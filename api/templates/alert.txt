@@ -1,4 +1,4 @@
-New leads matching your alert have been added to the AlgorithmTips Database at http://db.algorithmtips.org/.
+New leads matching your alert have been added to the AlgorithmTips Database at https://db.algorithmtips.org/.
 
 Algorithm Tips Alert
 Click here to see all {{ leads|length }} new leads: {{ links.alert|safe }}. These match your alert for (keyword filter: {{ filter_text }}; sources: {{source_text}})

@@ -1,7 +1,7 @@
 let HANDLE = null;
 
 // TODO: put this in a cfg file
-const KEY = "741161465779-iarif5gv7i2shgk80gmleg1trdtpb4hp.apps.googleusercontent.com";
+const KEY = "242875572469-otdncui7t31g7q1i3ev5bnusnnsffbpm.apps.googleusercontent.com";
 
 // Provides singleton access to the GAPI auth2 handle.
 export default async function auth2() {
