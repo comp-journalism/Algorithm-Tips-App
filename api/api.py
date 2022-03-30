@@ -6,7 +6,10 @@ from os import environ
 import flask
 from flask import request, Blueprint
 from flask_cors import CORS
-from sqlalchemy.sql import and_, select, text
+from sqlalchemy.sql import and_, select, text, func
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import orm
+
 
 from api.alerts import alerts, init_alerts
 from api.auth import auth, login_required, login_used
@@ -14,6 +17,8 @@ from api.db import engine, init_pool
 from api.flags import flags as flags_bp
 from api.mail import init_mail
 from api.models import annotated_leads, crowd_ratings, flags, leads
+from api.views import average_leads, CreateView
+
 from api.errors import abort_json
 
 with open('data/sources.json') as f:
@@ -61,9 +66,13 @@ LEAD_FIELDS = [
     leads.c.document_relevance
 ]
 
+initialize_view = False
+
 
 def build_lead_selection(uid=None, fields=LEAD_FIELDS, where=[], flagged_only=False):
     join = leads.join(annotated_leads)
+
+
     if uid is not None:
         fields = fields + [text('not isnull(uflags.id) as flagged')]
         uflags = select([flags.c.id, flags.c.lead_id]).where(
@@ -115,7 +124,30 @@ def build_filtered_lead_selection(filter_, from_, to, sources, page=1, uid=None,
         uid=uid, fields=fields, where=where, flagged_only=flagged_only)
 
     if page is not None:
-        query = query.order_by(annotated_leads.c.published_dt.desc())\
+
+        global initialize_view
+
+        if(initialize_view is not True):
+
+            with engine().begin() as con:
+
+                average_leads.__view__.drop(con)
+
+                Session = sessionmaker(bind=con)
+                session = Session()
+
+                if not hasattr(average_leads, '_sa_class_manager'):
+                    orm.mapper(average_leads, average_leads.__view__)
+
+                con.execute(CreateView(average_leads))
+
+                initialize_view = True
+
+        #join query with the average_leads view.
+        query = query.join(average_leads)
+        
+        #order by annotated leads publish time and average leads newsworthy score 
+        query = query.order_by(func.DATE(annotated_leads.c.published_dt).desc(), average_leads.average_news_value.asc())\
             .limit(PAGE_SIZE).offset(PAGE_SIZE * (page - 1))
 
     return query
@@ -165,6 +197,7 @@ def filter_leads(uid, flagged=False):
     - federal / regional / local define source filters which are matched on equality. "exclude" is a special value that indicates they should not be included.
     - page is a number from 1 to ...
     """
+
     filter_ = request.args.get('filter', None)
     from_ = request.args.get('from', None)
     to = request.args.get('to', None)
@@ -172,6 +205,8 @@ def filter_leads(uid, flagged=False):
 
     query = build_filtered_lead_selection(
         filter_, from_, to, request.args, page, uid, flagged_only=flagged)
+
+
 
     with engine().begin() as con:
 
@@ -198,6 +233,7 @@ def filter_leads(uid, flagged=False):
 
         meta = dict(result.fetchone().items())
         print(meta)
+        
 
         meta['num_pages'] = ceil(meta['num_results'] / PAGE_SIZE)
         meta['page'] = page
@@ -206,9 +242,12 @@ def filter_leads(uid, flagged=False):
 
         ratings_query = select([crowd_ratings]).where(
             crowd_ratings.c.lead_id.in_(tuple(res_map.keys())))
+
         ratings = con.execute(ratings_query)
 
+
         for rating in ratings:
+            
             lead = res_map[rating['lead_id']]
             lead['ratings'].append(dict(rating.items()))
 
@@ -216,6 +255,7 @@ def filter_leads(uid, flagged=False):
             'leads': list(res_map.values()),
             **meta
         }
+
         return flask.jsonify(result)
 
 
